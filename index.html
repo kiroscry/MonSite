@@ -1,10 +1,209 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mon Site de Vente</title>
+    <title>Gestion Achat-Revente</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .form-group { margin-bottom: 10px; }
+        button { padding: 5px 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h1>Bienvenue sur mon site !</h1>
-    <p>Ici je vais gérer mes ventes.</p>
+    <h1>Gestion de mon activité</h1>
+    
+    <!-- Formulaire d'ajout d'achat -->
+    <h2>Nouvel Achat</h2>
+    <div class="form-group">
+        <label>Article :</label>
+        <input type="text" id="achat-article" placeholder="Ex: Pull Zara">
+    </div>
+    <div class="form-group">
+        <label>Prix d'achat :</label>
+        <input type="number" id="achat-prix" placeholder="Ex: 20">
+    </div>
+    <div class="form-group">
+        <label>Date :</label>
+        <input type="date" id="achat-date">
+    </div>
+    <button onclick="ajouterAchat()">Enregistrer l'achat</button>
+
+    <!-- Formulaire de vente -->
+    <h2>Nouvelle Vente</h2>
+    <div class="form-group">
+        <label>Article :</label>
+        <select id="vente-article"></select>
+    </div>
+    <div class="form-group">
+        <label>Prix de vente :</label>
+        <input type="number" id="vente-prix" placeholder="Ex: 50">
+    </div>
+    <div class="form-group">
+        <label>Date :</label>
+        <input type="date" id="vente-date">
+    </div>
+    <button onclick="ajouterVente()">Enregistrer la vente</button>
+
+    <!-- Tableaux -->
+    <h2>Mon Stock Actuel</h2>
+    <table id="tableau-stock">
+        <thead>
+            <tr>
+                <th>Article</th><th>Quantité</th><th>Prix d'achat</th><th>Investissement</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Historique des Achats</h2>
+    <table id="tableau-achats">
+        <thead>
+            <tr><th>Date</th><th>Article</th><th>Prix</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Historique des Ventes</h2>
+    <table id="tableau-ventes">
+        <thead>
+            <tr><th>Date</th><th>Article</th><th>Prix</th><th>Bénéfice</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Script JavaScript (TOUT COLLER ICI) -->
+    <script>
+        // Stockage des données
+        let achats = JSON.parse(localStorage.getItem('achats')) || [];
+        let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
+
+        // Fonction pour ajouter un achat
+        function ajouterAchat() {
+            const article = document.getElementById('achat-article').value;
+            const prix = parseFloat(document.getElementById('achat-prix').value);
+            const date = document.getElementById('achat-date').value;
+            
+            achats.push({ article, prix, date });
+            localStorage.setItem('achats', JSON.stringify(achats));
+            actualiserTableaux();
+        }
+
+        // Fonction pour ajouter une vente
+        function ajouterVente() {
+            const article = document.getElementById('vente-article').value;
+            const prix = parseFloat(document.getElementById('vente-prix').value);
+            const date = document.getElementById('vente-date').value;
+            
+            ventes.push({ article, prix, date });
+            localStorage.setItem('ventes', JSON.stringify(ventes));
+            actualiserTableaux();
+        }
+
+        // Actualise tous les tableaux
+        function actualiserTableaux() {
+            actualiserStock();
+            actualiserHistoriqueAchats();
+            actualiserHistoriqueVentes();
+            actualiserListeArticles();
+        }
+
+        // Gestion du stock
+        function actualiserStock() {
+            const tbody = document.querySelector('#tableau-stock tbody');
+            tbody.innerHTML = '';
+            
+            const stock = {};
+            achats.forEach(achat => {
+                if (!stock[achat.article]) {
+                    stock[achat.article] = { quantite: 0, prix: achat.prix };
+                }
+                stock[achat.article].quantite += 1;
+            });
+            
+            ventes.forEach(vente => {
+                if (stock[vente.article]) {
+                    stock[vente.article].quantite -= 1;
+                }
+            });
+            
+            for (const [article, data] of Object.entries(stock)) {
+                if (data.quantite > 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${article}</td>
+                        <td>${data.quantite}</td>
+                        <td>${data.prix}€</td>
+                        <td>${data.quantite * data.prix}€</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
+        function actualiserHistoriqueAchats() {
+            const tbody = document.querySelector('#tableau-achats tbody');
+            tbody.innerHTML = '';
+            achats.forEach(achat => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${achat.date}</td>
+                    <td>${achat.article}</td>
+                    <td>${achat.prix}€</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function actualiserHistoriqueVentes() {
+            const tbody = document.querySelector('#tableau-ventes tbody');
+            tbody.innerHTML = '';
+            ventes.forEach(vente => {
+                const achatCorrespondant = achats.find(a => a.article === vente.article);
+                const benefice = achatCorrespondant ? (vente.prix - achatCorrespondant.prix) : 'N/A';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${vente.date}</td>
+                    <td>${vente.article}</td>
+                    <td>${vente.prix}€</td>
+                    <td>${benefice}€</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function actualiserListeArticles() {
+            const select = document.getElementById('vente-article');
+            select.innerHTML = '';
+            const articlesEnStock = {};
+            
+            achats.forEach(achat => {
+                if (!articlesEnStock[achat.article]) {
+                    articlesEnStock[achat.article] = 0;
+                }
+                articlesEnStock[achat.article] += 1;
+            });
+            
+            ventes.forEach(vente => {
+                if (articlesEnStock[vente.article]) {
+                    articlesEnStock[vente.article] -= 1;
+                }
+            });
+            
+            for (const [article, quantite] of Object.entries(articlesEnStock)) {
+                if (quantite > 0) {
+                    const option = document.createElement('option');
+                    option.value = article;
+                    option.textContent = article;
+                    select.appendChild(option);
+                }
+            }
+        }
+
+        // Au chargement de la page
+        document.addEventListener('DOMContentLoaded', actualiserTableaux);
+    </script>
 </body>
 </html>
