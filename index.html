@@ -3,17 +3,123 @@
 <head>
     <title>Gestion Achat-Revente</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .form-group { margin-bottom: 10px; }
-        button { padding: 5px 10px; cursor: pointer; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #3498db; 
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .form-group { 
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .cards-container { 
+            display: flex; 
+            gap: 20px; 
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        .card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 200px;
+            border-top: 4px solid #3498db;
+        }
+        .card h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 16px; 
+            color: #7f8c8d; 
+        }
+        .card p { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2ecc71; 
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
     </style>
 </head>
 <body>
     <h1>Gestion de mon activité</h1>
     
+    <!-- Cards de résumé -->
+    <div class="cards-container">
+        <div class="card">
+            <h3>Aujourd'hui</h3>
+            <p id="benef-jour">0€</p>
+        </div>
+        <div class="card">
+            <h3>7 derniers jours</h3>
+            <p id="benef-semaine">0€</p>
+        </div>
+        <div class="card">
+            <h3>Ce mois-ci</h3>
+            <p id="benef-mois">0€</p>
+        </div>
+    </div>
+
     <!-- Formulaire d'ajout d'achat -->
     <h2>Nouvel Achat</h2>
     <div class="form-group">
@@ -51,7 +157,7 @@
     <table id="tableau-stock">
         <thead>
             <tr>
-                <th>Article</th><th>Quantité</th><th>Prix d'achat</th><th>Investissement</th>
+                <th>Article</th><th>Quantité</th><th>Prix réel</th><th>Investissement</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -60,7 +166,7 @@
     <h2>Historique des Achats</h2>
     <table id="tableau-achats">
         <thead>
-            <tr><th>Date</th><th>Article</th><th>Prix</th></tr>
+            <tr><th>Date</th><th>Article</th><th>Prix réel</th><th>Frais livraison</th></tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -68,29 +174,49 @@
     <h2>Historique des Ventes</h2>
     <table id="tableau-ventes">
         <thead>
-            <tr><th>Date</th><th>Article</th><th>Prix</th><th>Bénéfice</th></tr>
+            <tr><th>Date</th><th>Article</th><th>Prix vente</th><th>Bénéfice</th></tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <!-- Script JavaScript (TOUT COLLER ICI) -->
+    <!-- Graphique -->
+    <div class="chart-container">
+        <h2>Évolution des Bénéfices</h2>
+        <canvas id="graphique-benefices" style="width:100%; height:400px;"></canvas>
+    </div>
+
+    <!-- Script JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Stockage des données
         let achats = JSON.parse(localStorage.getItem('achats')) || [];
         let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
 
-        // Fonction pour ajouter un achat
+        // Fonction pour ajouter un achat (version améliorée avec frais de livraison)
         function ajouterAchat() {
             const article = document.getElementById('achat-article').value;
             const prix = parseFloat(document.getElementById('achat-prix').value);
             const date = document.getElementById('achat-date').value;
             
-            achats.push({ article, prix, date });
+            // Nouveau : Gestion des frais de livraison
+            const fraisLivraison = parseFloat(prompt("Frais de livraison du colis (€) :")) || 0;
+            const nbArticlesColis = parseInt(prompt("Nombre d'articles dans ce colis :")) || 1;
+            const prixReel = prix + (fraisLivraison / nbArticlesColis);
+            
+            achats.push({ 
+                article, 
+                prix: prixReel,
+                prixInitial: prix,
+                fraisLivraison,
+                nbArticlesColis,
+                date 
+            });
+            
             localStorage.setItem('achats', JSON.stringify(achats));
             actualiserTableaux();
         }
 
-        // Fonction pour ajouter une vente
+        // Fonction pour ajouter une vente (inchangée)
         function ajouterVente() {
             const article = document.getElementById('vente-article').value;
             const prix = parseFloat(document.getElementById('vente-prix').value);
@@ -101,15 +227,17 @@
             actualiserTableaux();
         }
 
-        // Actualise tous les tableaux
+        // Actualise tous les tableaux et graphiques
         function actualiserTableaux() {
             actualiserStock();
             actualiserHistoriqueAchats();
             actualiserHistoriqueVentes();
             actualiserListeArticles();
+            updateCards();
+            genererGraphique();
         }
 
-        // Gestion du stock
+        // Gestion du stock (version améliorée)
         function actualiserStock() {
             const tbody = document.querySelector('#tableau-stock tbody');
             tbody.innerHTML = '';
@@ -134,14 +262,15 @@
                     tr.innerHTML = `
                         <td>${article}</td>
                         <td>${data.quantite}</td>
-                        <td>${data.prix}€</td>
-                        <td>${data.quantite * data.prix}€</td>
+                        <td>${data.prix.toFixed(2)}€</td>
+                        <td>${(data.quantite * data.prix).toFixed(2)}€</td>
                     `;
                     tbody.appendChild(tr);
                 }
             }
         }
 
+        // Historique des achats (version améliorée)
         function actualiserHistoriqueAchats() {
             const tbody = document.querySelector('#tableau-achats tbody');
             tbody.innerHTML = '';
@@ -150,12 +279,14 @@
                 tr.innerHTML = `
                     <td>${achat.date}</td>
                     <td>${achat.article}</td>
-                    <td>${achat.prix}€</td>
+                    <td>${achat.prix.toFixed(2)}€</td>
+                    <td>${achat.fraisLivraison ? achat.fraisLivraison.toFixed(2)+'€' : 'N/A'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // Historique des ventes (version améliorée)
         function actualiserHistoriqueVentes() {
             const tbody = document.querySelector('#tableau-ventes tbody');
             tbody.innerHTML = '';
@@ -167,13 +298,16 @@
                 tr.innerHTML = `
                     <td>${vente.date}</td>
                     <td>${vente.article}</td>
-                    <td>${vente.prix}€</td>
-                    <td>${benefice}€</td>
+                    <td>${vente.prix.toFixed(2)}€</td>
+                    <td style="color: ${benefice >= 0 ? 'green' : 'red'}">
+                        ${typeof benefice === 'number' ? benefice.toFixed(2)+'€' : benefice}
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // Liste des articles disponibles (inchangée)
         function actualiserListeArticles() {
             const select = document.getElementById('vente-article');
             select.innerHTML = '';
@@ -199,6 +333,98 @@
                     option.textContent = article;
                     select.appendChild(option);
                 }
+            }
+        }
+
+        // Nouveau : Cartes de résumé
+        function updateCards() {
+            const aujourdhui = new Date().toISOString().split('T')[0];
+            const date7Jours = new Date();
+            date7Jours.setDate(date7Jours.getDate() - 7);
+            const moisActuel = new Date().getMonth() + 1;
+            
+            let benefJour = 0;
+            let benefSemaine = 0;
+            let benefMois = 0;
+            
+            ventes.forEach(vente => {
+                const achat = achats.find(a => a.article === vente.article);
+                const benefice = achat ? (vente.prix - achat.prix) : 0;
+                
+                // Bénéfice du jour
+                if (vente.date === aujourdhui) {
+                    benefJour += benefice;
+                }
+                
+                // Bénéfice des 7 derniers jours
+                const dateVente = new Date(vente.date);
+                if (dateVente >= date7Jours) {
+                    benefSemaine += benefice;
+                }
+                
+                // Bénéfice du mois
+                if (new Date(vente.date).getMonth() + 1 === moisActuel) {
+                    benefMois += benefice;
+                }
+            });
+            
+            document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
+            document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
+            document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
+        }
+
+        // Nouveau : Graphique des bénéfices
+        function genererGraphique() {
+            const ctx = document.getElementById('graphique-benefices').getContext('2d');
+            
+            // Préparer les données (30 derniers jours)
+            const dates = [];
+            const benefices = [];
+            const aujourdhui = new Date();
+            
+            for (let i = 30; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(aujourdhui.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                dates.push(dateStr.split('-')[2] + '/' + dateStr.split('-')[1]);
+                
+                let beneficeDuJour = 0;
+                ventes.forEach(vente => {
+                    if (vente.date === dateStr) {
+                        const achat = achats.find(a => a.article === vente.article);
+                        beneficeDuJour += achat ? (vente.prix - achat.prix) : 0;
+                    }
+                });
+                benefices.push(beneficeDuJour);
+            }
+            
+            // Créer ou mettre à jour le graphique
+            if (window.beneficeChart) {
+                window.beneficeChart.data.labels = dates;
+                window.beneficeChart.data.datasets[0].data = benefices;
+                window.beneficeChart.update();
+            } else {
+                window.beneficeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Bénéfices (€)',
+                            data: benefices,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
             }
         }
 
