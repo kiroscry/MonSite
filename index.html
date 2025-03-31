@@ -1,91 +1,435 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gestion Stock</title>
+    <title>Gestion Achat-Revente</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        input, select { padding: 8px; width: 200px; }
-        button { padding: 10px 15px; background: #3498db; color: white; border: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #3498db; 
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .form-group { 
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .cards-container { 
+            display: flex; 
+            gap: 20px; 
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        .card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 200px;
+            border-top: 4px solid #3498db;
+        }
+        .card h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 16px; 
+            color: #7f8c8d; 
+        }
+        .card p { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2ecc71; 
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
     </style>
 </head>
 <body>
-    <h1>Gestion Stock</h1>
+    <h1>Gestion de mon activité</h1>
+    
+    <!-- Cards de résumé -->
+    <div class="cards-container">
+        <div class="card">
+            <h3>Aujourd'hui</h3>
+            <p id="benef-jour">0€</p>
+        </div>
+        <div class="card">
+            <h3>7 derniers jours</h3>
+            <p id="benef-semaine">0€</p>
+        </div>
+        <div class="card">
+            <h3>Ce mois-ci</h3>
+            <p id="benef-mois">0€</p>
+        </div>
+    </div>
 
-    <!-- Formulaire Achat -->
+    <!-- Formulaire d'ajout d'achat -->
     <h2>Nouvel Achat</h2>
     <div class="form-group">
-        <label>Article: <input type="text" id="article" required></label>
+        <label>Article :</label>
+        <input type="text" id="achat-article" placeholder="Ex: Pull Zara">
     </div>
     <div class="form-group">
-        <label>Prix unitaire: <input type="number" id="prix" step="0.01" required></label>
+        <label>Prix d'achat :</label>
+        <input type="number" id="achat-prix" placeholder="Ex: 20">
     </div>
     <div class="form-group">
-        <label>Quantité: <input type="number" id="quantite" value="1" min="1" required></label>
+        <label>Date :</label>
+        <input type="date" id="achat-date">
     </div>
-    <div class="form-group">
-        <label>Date: <input type="date" id="date" required></label>
-    </div>
-    <button onclick="ajouterAchat()">Enregistrer</button>
+    <button onclick="ajouterAchat()">Enregistrer l'achat</button>
 
-    <!-- Liste du Stock -->
-    <h2>Stock Actuel</h2>
-    <table id="stock">
+    <!-- Formulaire de vente -->
+    <h2>Nouvelle Vente</h2>
+    <div class="form-group">
+        <label>Article :</label>
+        <select id="vente-article"></select>
+    </div>
+    <div class="form-group">
+        <label>Prix de vente :</label>
+        <input type="number" id="vente-prix" placeholder="Ex: 50">
+    </div>
+    <div class="form-group">
+        <label>Date :</label>
+        <input type="date" id="vente-date">
+    </div>
+    <button onclick="ajouterVente()">Enregistrer la vente</button>
+
+    <!-- Tableaux -->
+    <h2>Mon Stock Actuel</h2>
+    <table id="tableau-stock">
         <thead>
-            <tr><th>Article</th><th>Quantité</th><th>Prix Unitaire</th></tr>
+            <tr>
+                <th>Article</th><th>Quantité</th><th>Prix réel</th><th>Investissement</th>
+            </tr>
         </thead>
         <tbody></tbody>
     </table>
 
+    <h2>Historique des Achats</h2>
+    <table id="tableau-achats">
+        <thead>
+            <tr><th>Date</th><th>Article</th><th>Prix réel</th><th>Frais livraison</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Historique des Ventes</h2>
+    <table id="tableau-ventes">
+        <thead>
+            <tr><th>Date</th><th>Article</th><th>Prix vente</th><th>Bénéfice</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Graphique -->
+    <div class="chart-container">
+        <h2>Évolution des Bénéfices</h2>
+        <canvas id="graphique-benefices" style="width:100%; height:400px;"></canvas>
+    </div>
+
+    <!-- Script JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let stock = JSON.parse(localStorage.getItem('stock')) || [];
+        // Stockage des données
+        let achats = JSON.parse(localStorage.getItem('achats')) || [];
+        let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
 
+        // Fonction pour ajouter un achat (version améliorée avec frais de livraison)
         function ajouterAchat() {
-            const article = document.getElementById('article').value;
-            const prix = parseFloat(document.getElementById('prix').value);
-            const quantite = parseInt(document.getElementById('quantite').value);
-            const date = document.getElementById('date').value;
-
-            if (!article || isNaN(prix) {
-                alert("Remplis tous les champs !");
-                return;
-            }
-
-            // Ajout au stock
-            const fraisLivraison = parseFloat(prompt("Frais de livraison totaux:")) || 0;
-            const nbArticlesColis = parseInt(prompt("Nombre d'articles dans le colis:")) || quantite;
+            const article = document.getElementById('achat-article').value;
+            const prix = parseFloat(document.getElementById('achat-prix').value);
+            const date = document.getElementById('achat-date').value;
+            
+            // Nouveau : Gestion des frais de livraison
+            const fraisLivraison = parseFloat(prompt("Frais de livraison du colis (€) :")) || 0;
+            const nbArticlesColis = parseInt(prompt("Nombre d'articles dans ce colis :")) || 1;
             const prixReel = prix + (fraisLivraison / nbArticlesColis);
-
-            stock.push({
-                article,
+            
+            achats.push({ 
+                article, 
                 prix: prixReel,
-                quantite,
-                date
+                prixInitial: prix,
+                fraisLivraison,
+                nbArticlesColis,
+                date 
             });
-
-            localStorage.setItem('stock', JSON.stringify(stock));
-            afficherStock();
+            
+            localStorage.setItem('achats', JSON.stringify(achats));
+            actualiserTableaux();
         }
 
-        function afficherStock() {
-            const tbody = document.querySelector('#stock tbody');
-            tbody.innerHTML = '';
+        // Fonction pour ajouter une vente (inchangée)
+        function ajouterVente() {
+            const article = document.getElementById('vente-article').value;
+            const prix = parseFloat(document.getElementById('vente-prix').value);
+            const date = document.getElementById('vente-date').value;
+            
+            ventes.push({ article, prix, date });
+            localStorage.setItem('ventes', JSON.stringify(ventes));
+            actualiserTableaux();
+        }
 
-            stock.forEach(item => {
+        // Actualise tous les tableaux et graphiques
+        function actualiserTableaux() {
+            actualiserStock();
+            actualiserHistoriqueAchats();
+            actualiserHistoriqueVentes();
+            actualiserListeArticles();
+            updateCards();
+            genererGraphique();
+        }
+
+        // Gestion du stock (version améliorée)
+        function actualiserStock() {
+            const tbody = document.querySelector('#tableau-stock tbody');
+            tbody.innerHTML = '';
+            
+            const stock = {};
+            achats.forEach(achat => {
+                if (!stock[achat.article]) {
+                    stock[achat.article] = { quantite: 0, prix: achat.prix };
+                }
+                stock[achat.article].quantite += 1;
+            });
+            
+            ventes.forEach(vente => {
+                if (stock[vente.article]) {
+                    stock[vente.article].quantite -= 1;
+                }
+            });
+            
+            for (const [article, data] of Object.entries(stock)) {
+                if (data.quantite > 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${article}</td>
+                        <td>${data.quantite}</td>
+                        <td>${data.prix.toFixed(2)}€</td>
+                        <td>${(data.quantite * data.prix).toFixed(2)}€</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
+        // Historique des achats (version améliorée)
+        function actualiserHistoriqueAchats() {
+            const tbody = document.querySelector('#tableau-achats tbody');
+            tbody.innerHTML = '';
+            achats.forEach(achat => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${item.article}</td>
-                    <td>${item.quantite}</td>
-                    <td>${item.prix.toFixed(2)}€</td>
+                    <td>${achat.date}</td>
+                    <td>${achat.article}</td>
+                    <td>${achat.prix.toFixed(2)}€</td>
+                    <td>${achat.fraisLivraison ? achat.fraisLivraison.toFixed(2)+'€' : 'N/A'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // Au chargement
-        afficherStock();
+        // Historique des ventes (version améliorée)
+        function actualiserHistoriqueVentes() {
+            const tbody = document.querySelector('#tableau-ventes tbody');
+            tbody.innerHTML = '';
+            ventes.forEach(vente => {
+                const achatCorrespondant = achats.find(a => a.article === vente.article);
+                const benefice = achatCorrespondant ? (vente.prix - achatCorrespondant.prix) : 'N/A';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${vente.date}</td>
+                    <td>${vente.article}</td>
+                    <td>${vente.prix.toFixed(2)}€</td>
+                    <td style="color: ${benefice >= 0 ? 'green' : 'red'}">
+                        ${typeof benefice === 'number' ? benefice.toFixed(2)+'€' : benefice}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Liste des articles disponibles (inchangée)
+        function actualiserListeArticles() {
+            const select = document.getElementById('vente-article');
+            select.innerHTML = '';
+            const articlesEnStock = {};
+            
+            achats.forEach(achat => {
+                if (!articlesEnStock[achat.article]) {
+                    articlesEnStock[achat.article] = 0;
+                }
+                articlesEnStock[achat.article] += 1;
+            });
+            
+            ventes.forEach(vente => {
+                if (articlesEnStock[vente.article]) {
+                    articlesEnStock[vente.article] -= 1;
+                }
+            });
+            
+            for (const [article, quantite] of Object.entries(articlesEnStock)) {
+                if (quantite > 0) {
+                    const option = document.createElement('option');
+                    option.value = article;
+                    option.textContent = article;
+                    select.appendChild(option);
+                }
+            }
+        }
+
+        // Nouveau : Cartes de résumé
+        function updateCards() {
+            const aujourdhui = new Date().toISOString().split('T')[0];
+            const date7Jours = new Date();
+            date7Jours.setDate(date7Jours.getDate() - 7);
+            const moisActuel = new Date().getMonth() + 1;
+            
+            let benefJour = 0;
+            let benefSemaine = 0;
+            let benefMois = 0;
+            
+            ventes.forEach(vente => {
+                const achat = achats.find(a => a.article === vente.article);
+                const benefice = achat ? (vente.prix - achat.prix) : 0;
+                
+                // Bénéfice du jour
+                if (vente.date === aujourdhui) {
+                    benefJour += benefice;
+                }
+                
+                // Bénéfice des 7 derniers jours
+                const dateVente = new Date(vente.date);
+                if (dateVente >= date7Jours) {
+                    benefSemaine += benefice;
+                }
+                
+                // Bénéfice du mois
+                if (new Date(vente.date).getMonth() + 1 === moisActuel) {
+                    benefMois += benefice;
+                }
+            });
+            
+            document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
+            document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
+            document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
+        }
+
+        // Nouveau : Graphique des bénéfices
+        function genererGraphique() {
+            const ctx = document.getElementById('graphique-benefices').getContext('2d');
+            
+            // Préparer les données (30 derniers jours)
+            const dates = [];
+            const benefices = [];
+            const aujourdhui = new Date();
+            
+            for (let i = 30; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(aujourdhui.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                dates.push(dateStr.split('-')[2] + '/' + dateStr.split('-')[1]);
+                
+                let beneficeDuJour = 0;
+                ventes.forEach(vente => {
+                    if (vente.date === dateStr) {
+                        const achat = achats.find(a => a.article === vente.article);
+                        beneficeDuJour += achat ? (vente.prix - achat.prix) : 0;
+                    }
+                });
+                benefices.push(beneficeDuJour);
+            }
+            
+            // Créer ou mettre à jour le graphique
+            if (window.beneficeChart) {
+                window.beneficeChart.data.labels = dates;
+                window.beneficeChart.data.datasets[0].data = benefices;
+                window.beneficeChart.update();
+            } else {
+                window.beneficeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Bénéfices (€)',
+                            data: benefices,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Au chargement de la page
+        document.addEventListener('DOMContentLoaded', actualiserTableaux);
     </script>
 </body>
 </html>
