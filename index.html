@@ -1,607 +1,438 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gestion Achat-Revente PRO</title>
+    <title>Gestion Stock Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
+        /* Reset mobile */
+        * {
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f7fa;
-            color: #333;
+            padding: 15px 10px 70px;
+            background: #f5f7fa;
+            font-size: 16px;
         }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+        
+        /* Navigation mobile */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #3498db;
+            display: flex;
+            padding: 10px 5px;
+            z-index: 100;
         }
-        h2 {
-            color: #3498db;
-            margin-top: 25px;
-        }
-        table {
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        th, td { 
-            border: 1px solid #ddd; 
-            padding: 12px; 
-            text-align: left; 
-        }
-        th { 
-            background-color: #3498db; 
+        
+        .mobile-nav button {
+            flex: 1;
+            background: none;
+            border: none;
             color: white;
-            font-weight: bold;
+            padding: 10px;
+            font-size: 14px;
         }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        
+        /* Sections */
+        .section {
+            display: none;
         }
-        .form-group { 
+        
+        .section.active {
+            display: block;
+        }
+        
+        /* Formulaires */
+        .form-group {
             margin-bottom: 15px;
         }
+        
         label {
-            display: inline-block;
-            width: 150px;
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
-            color: #2c3e50;
         }
+        
         input, select {
-            padding: 8px;
+            width: 100%;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 200px;
+            border-radius: 8px;
+            font-size: 16px;
         }
-        button {
-            padding: 10px 15px;
-            cursor: pointer;
-            background-color: #3498db;
+        
+        /* Boutons */
+        .btn {
+            background: #3498db;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button.danger {
-            background-color: #e74c3c;
-        }
-        button.danger:hover {
-            background-color: #c0392b;
-        }
-        .cards-container { 
-            display: flex; 
-            gap: 20px; 
-            margin: 25px 0;
-            flex-wrap: wrap;
-        }
-        .card { 
-            background: white; 
-            border-radius: 8px; 
-            padding: 20px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 200px;
-            border-top: 4px solid #3498db;
-        }
-        .card h3 { 
-            margin: 0 0 10px 0; 
-            font-size: 16px; 
-            color: #7f8c8d; 
-        }
-        .card p { 
-            margin: 0; 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #2ecc71; 
-        }
-        .chart-container {
-            background: white;
-            padding: 20px;
+            padding: 14px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+            width: 100%;
+            font-size: 16px;
+            margin: 10px 0;
         }
-        .stock-warning {
-            color: #e74c3c;
-            font-weight: bold;
+        
+        .btn-danger {
+            background: #e74c3c;
+            padding: 8px 12px;
+            width: auto;
+        }
+        
+        /* Tableaux */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            background: #3498db;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1>Gestion de mon activité</h1>
-    
-    <!-- Cards de résumé -->
-    <div class="cards-container">
-        <div class="card">
-            <h3>Aujourd'hui</h3>
-            <p id="benef-jour">0€</p>
-        </div>
-        <div class="card">
-            <h3>7 derniers jours</h3>
-            <p id="benef-semaine">0€</p>
-        </div>
-        <div class="card">
-            <h3>Ce mois-ci</h3>
-            <p id="benef-mois">0€</p>
-        </div>
-        <div class="card">
-            <h3>Stock total</h3>
-            <p id="total-stock">0 articles</p>
-        </div>
-    </div>
 
-    <!-- Formulaire d'ajout d'achat -->
+<!-- Navigation Mobile -->
+<div class="mobile-nav">
+    <button onclick="showSection('resume')">Résumé</button>
+    <button onclick="showSection('achats')">Achats</button>
+    <button onclick="showSection('ventes')">Ventes</button>
+    <button onclick="showSection('stock')">Stock</button>
+</div>
+
+<!-- Section Résumé -->
+<div id="resume" class="section active">
+    <h2>Résumé</h2>
+    <div style="background:white; padding:15px; border-radius:8px; margin:10px 0;">
+        <p><b>Aujourd'hui :</b> <span id="benef-jour">0€</span></p>
+        <p><b>7 derniers jours :</b> <span id="benef-semaine">0€</span></p>
+        <p><b>Ce mois-ci :</b> <span id="benef-mois">0€</span></p>
+    </div>
+</div>
+
+<!-- Section Achats -->
+<div id="achats" class="section">
     <h2>Nouvel Achat</h2>
     <div class="form-group">
         <label>Article :</label>
-        <input type="text" id="achat-article" placeholder="Ex: Pull Zara">
+        <input type="text" id="achat-article" placeholder="Pull Zara">
     </div>
     <div class="form-group">
-        <label>Prix unitaire :</label>
-        <input type="number" id="achat-prix" placeholder="Ex: 20" step="0.01">
+        <label>Prix unitaire (€) :</label>
+        <input type="number" id="achat-prix" step="0.01" placeholder="20.00">
     </div>
     <div class="form-group">
         <label>Quantité :</label>
         <input type="number" id="achat-quantite" value="1" min="1">
     </div>
     <div class="form-group">
+        <label>Frais de livraison (€) :</label>
+        <input type="number" id="achat-livraison" step="0.01" placeholder="5.00">
+    </div>
+    <div class="form-group">
         <label>Date :</label>
         <input type="date" id="achat-date">
     </div>
-    <button onclick="ajouterAchat()">Enregistrer l'achat</button>
+    <button class="btn" onclick="ajouterAchat()">Enregistrer</button>
+    
+    <h2>Historique</h2>
+    <table id="tableau-achats">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Article</th>
+                <th>Prix</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-    <!-- Formulaire de vente -->
+<!-- Section Ventes -->
+<div id="ventes" class="section">
     <h2>Nouvelle Vente</h2>
     <div class="form-group">
         <label>Article :</label>
         <select id="vente-article"></select>
-        <span id="stock-disponible" style="margin-left: 10px;"></span>
+        <small id="stock-disponible" style="color:#3498db;"></small>
     </div>
     <div class="form-group">
-        <label>Prix unitaire :</label>
-        <input type="number" id="vente-prix" placeholder="Ex: 50" step="0.01">
+        <label>Prix de vente (€) :</label>
+        <input type="number" id="vente-prix" step="0.01" placeholder="50.00">
     </div>
     <div class="form-group">
-        <label>Quantité vendue :</label>
+        <label>Quantité :</label>
         <input type="number" id="vente-quantite" value="1" min="1">
     </div>
     <div class="form-group">
         <label>Date :</label>
         <input type="date" id="vente-date">
     </div>
-    <button onclick="ajouterVente()">Enregistrer la vente</button>
-
-    <!-- Tableaux -->
-    <h2>Mon Stock Actuel</h2>
-    <table id="tableau-stock">
-        <thead>
-            <tr>
-                <th>Article</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
-                <th>Valeur stock</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <h2>Historique des Achats</h2>
-    <table id="tableau-achats">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Article</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
-                <th>Frais livraison</th>
-                <th>Total</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <h2>Historique des Ventes</h2>
+    <button class="btn" onclick="ajouterVente()">Enregistrer</button>
+    
+    <h2>Historique</h2>
     <table id="tableau-ventes">
         <thead>
             <tr>
                 <th>Date</th>
                 <th>Article</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
-                <th>Total</th>
+                <th>Prix</th>
                 <th>Bénéfice</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
+</div>
 
-    <!-- Graphique -->
-    <div class="chart-container">
-        <h2>Évolution des Bénéfices</h2>
-        <canvas id="graphique-benefices" style="width:100%; height:400px;"></canvas>
-    </div>
+<!-- Section Stock -->
+<div id="stock" class="section">
+    <h2>Stock Actuel</h2>
+    <table id="tableau-stock">
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Prix</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-    <!-- Script JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Stockage des données
-        let achats = JSON.parse(localStorage.getItem('achats')) || [];
-        let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
-        let nextId = Math.max(...achats.map(a => a.id || 0), ...ventes.map(v => v.id || 0)) + 1;
+<script>
+    // Données
+    let achats = JSON.parse(localStorage.getItem('achats')) || [];
+    let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
+    let nextId = Math.max(0, ...achats.map(a => a.id || 0), ...ventes.map(v => v.id || 0)) + 1;
 
-        // Fonction pour ajouter un achat
-        function ajouterAchat() {
-            const article = document.getElementById('achat-article').value;
-            const prix = parseFloat(document.getElementById('achat-prix').value);
-            const quantite = parseInt(document.getElementById('achat-quantite').value);
-            const date = document.getElementById('achat-date').value;
+    // Navigation
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById(sectionId).classList.add('active');
+    }
+
+    // Ajout d'achat
+    function ajouterAchat() {
+        const article = document.getElementById('achat-article').value.trim();
+        const prix = parseFloat(document.getElementById('achat-prix').value);
+        const quantite = parseInt(document.getElementById('achat-quantite').value);
+        const livraison = parseFloat(document.getElementById('achat-livraison').value) || 0;
+        const date = document.getElementById('achat-date').value;
+
+        if (!article || isNaN(prix) || isNaN(quantite) || !date) {
+            alert("Remplis tous les champs !");
+            return;
+        }
+
+        const prixReel = prix + (livraison / quantite);
+
+        achats.push({
+            id: nextId++,
+            article,
+            prix: prixReel,
+            prixInitial: prix,
+            fraisLivraison: livraison,
+            quantite,
+            date
+        });
+
+        localStorage.setItem('achats', JSON.stringify(achats));
+        actualiserDonnees();
+        document.getElementById('achat-article').value = '';
+        document.getElementById('achat-prix').value = '';
+        document.getElementById('achat-quantite').value = 1;
+        document.getElementById('achat-livraison').value = '';
+        showSection('achats');
+    }
+
+    // Ajout de vente
+    function ajouterVente() {
+        const article = document.getElementById('vente-article').value;
+        const prix = parseFloat(document.getElementById('vente-prix').value);
+        const quantite = parseInt(document.getElementById('vente-quantite').value);
+        const date = document.getElementById('vente-date').value;
+
+        if (!article || isNaN(prix) || isNaN(quantite) || !date) {
+            alert("Remplis tous les champs !");
+            return;
+        }
+
+        if (calculerStock(article) < quantite) {
+            alert(`Stock insuffisant ! Il reste ${calculerStock(article)} ${article}`);
+            return;
+        }
+
+        ventes.push({
+            id: nextId++,
+            article,
+            prix,
+            quantite,
+            date
+        });
+
+        localStorage.setItem('ventes', JSON.stringify(ventes));
+        actualiserDonnees();
+        document.getElementById('vente-prix').value = '';
+        document.getElementById('vente-quantite').value = 1;
+        showSection('ventes');
+    }
+
+    // Calcul du stock
+    function calculerStock(article) {
+        const totalAchats = achats
+            .filter(a => a.article === article)
+            .reduce((sum, a) => sum + a.quantite, 0);
             
-            if (!article || isNaN(prix) {
-                alert("Veuillez remplir tous les champs obligatoires");
-                return;
-            }
-
-            // Gestion des frais de livraison
-            const fraisLivraison = parseFloat(prompt("Frais de livraison totaux pour ce colis (€) :")) || 0;
-            const nbArticlesColis = parseInt(prompt("Nombre TOTAL d'articles dans ce colis (pour répartition) :")) || quantite;
+        const totalVentes = ventes
+            .filter(v => v.article === article)
+            .reduce((sum, v) => sum + v.quantite, 0);
             
-            const prixReelParArticle = prix + (fraisLivraison / nbArticlesColis);
+        return totalAchats - totalVentes;
+    }
 
-            // Ajoute l'achat
-            achats.push({ 
-                id: nextId++,
-                article, 
-                prix: prixReelParArticle,
-                prixInitial: prix,
-                fraisLivraison: fraisLivraison,
-                quantite,
-                date,
-                nbArticlesColis
-            });
-            
+    // Suppression
+    function supprimerElement(type, id) {
+        if (!confirm("Supprimer cet élément ?")) return;
+        
+        if (type === 'achat') {
+            achats = achats.filter(a => a.id !== id);
             localStorage.setItem('achats', JSON.stringify(achats));
-            actualiserTableaux();
-            
-            // Réinitialise le formulaire
-            document.getElementById('achat-article').value = '';
-            document.getElementById('achat-prix').value = '';
-            document.getElementById('achat-quantite').value = 1;
-        }
-
-        // Fonction pour ajouter une vente
-        function ajouterVente() {
-            const article = document.getElementById('vente-article').value;
-            const prix = parseFloat(document.getElementById('vente-prix').value);
-            const quantite = parseInt(document.getElementById('vente-quantite').value);
-            const date = document.getElementById('vente-date').value;
-            
-            if (!article || isNaN(prix) || isNaN(quantite)) {
-                alert("Veuillez remplir tous les champs obligatoires");
-                return;
-            }
-
-            // Vérifie si le stock est suffisant
-            const stockDisponible = calculerStockDisponible(article);
-            if (stockDisponible < quantite) {
-                alert(`Stock insuffisant! Il ne reste que ${stockDisponible} ${article}(s) en stock`);
-                return;
-            }
-
-            // Ajoute la vente
-            ventes.push({ 
-                id: nextId++,
-                article, 
-                prix, 
-                quantite,
-                date 
-            });
-            
+        } else {
+            ventes = ventes.filter(v => v.id !== id);
             localStorage.setItem('ventes', JSON.stringify(ventes));
-            actualiserTableaux();
-            
-            // Réinitialise le formulaire
-            document.getElementById('vente-prix').value = '';
-            document.getElementById('vente-quantite').value = 1;
         }
+        
+        actualiserDonnees();
+    }
 
-        // Fonction pour supprimer un élément
-        function supprimerElement(type, id) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-                if (type === 'achat') {
-                    achats = achats.filter(a => a.id !== id);
-                    localStorage.setItem('achats', JSON.stringify(achats));
-                } else {
-                    ventes = ventes.filter(v => v.id !== id);
-                    localStorage.setItem('ventes', JSON.stringify(ventes));
-                }
-                actualiserTableaux();
-            }
-        }
-
-        // Actualise tous les tableaux et graphiques
-        function actualiserTableaux() {
-            actualiserStock();
-            actualiserHistoriqueAchats();
-            actualiserHistoriqueVentes();
-            actualiserListeArticles();
-            updateCards();
-            genererGraphique();
-        }
-
-        // Gestion du stock
-        function actualiserStock() {
-            const tbody = document.querySelector('#tableau-stock tbody');
-            tbody.innerHTML = '';
-            
-            const stock = {};
-            achats.forEach(achat => {
-                if (!stock[achat.article]) {
-                    stock[achat.article] = { 
-                        quantite: 0, 
-                        prix: achat.prix,
-                        prixInitial: achat.prixInitial,
-                        fraisLivraison: achat.fraisLivraison 
-                    };
-                }
-                stock[achat.article].quantite += achat.quantite;
-            });
-            
-            ventes.forEach(vente => {
-                if (stock[vente.article]) {
-                    stock[vente.article].quantite -= vente.quantite;
-                }
-            });
-            
-            let totalStock = 0;
-            
-            for (const [article, data] of Object.entries(stock)) {
-                if (data.quantite > 0) {
-                    totalStock += data.quantite;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${article}</td>
-                        <td>${data.quantite}</td>
-                        <td>
-                            ${data.prix.toFixed(2)}€<br>
-                            <small>(${data.prixInitial.toFixed(2)}€ + ${(data.fraisLivraison / data.quantite).toFixed(2)}€ livraison)</small>
-                        </td>
-                        <td>${(data.quantite * data.prix).toFixed(2)}€</td>
-                        <td>
-                            <button class="danger" onclick="supprimerArticle('${article}')">Supprimer</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            }
-            
-            document.getElementById('total-stock').textContent = `${totalStock} articles`;
-        }
-
-        // Supprime tous les articles d'un type
-        function supprimerArticle(article) {
-            if (confirm(`Supprimer TOUS les "${article}" du stock ?`)) {
-                achats = achats.filter(a => a.article !== article);
-                ventes = ventes.filter(v => v.article !== article);
-                localStorage.setItem('achats', JSON.stringify(achats));
-                localStorage.setItem('ventes', JSON.stringify(ventes));
-                actualiserTableaux();
-            }
-        }
-
-        // Historique des achats
-        function actualiserHistoriqueAchats() {
-            const tbody = document.querySelector('#tableau-achats tbody');
-            tbody.innerHTML = '';
-            
-            achats.forEach(achat => {
+    // Actualisation interface
+    function actualiserDonnees() {
+        // Stock
+        const tbodyStock = document.querySelector('#tableau-stock tbody');
+        tbodyStock.innerHTML = '';
+        
+        const articles = [...new Set(achats.map(a => a.article))];
+        articles.forEach(article => {
+            const stock = calculerStock(article);
+            if (stock > 0) {
+                const achat = achats.find(a => a.article === article);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${achat.date}</td>
-                    <td>${achat.article}</td>
-                    <td>${achat.quantite}</td>
-                    <td>${achat.prixInitial.toFixed(2)}€</td>
-                    <td>${achat.fraisLivraison.toFixed(2)}€</td>
-                    <td>${(achat.prixInitial * achat.quantite + achat.fraisLivraison).toFixed(2)}€</td>
-                    <td>
-                        <button class="danger" onclick="supprimerElement('achat', ${achat.id})">Supprimer</button>
-                    </td>
+                    <td>${article}</td>
+                    <td>${stock}</td>
+                    <td>${achat.prix.toFixed(2)}€</td>
+                    <td><button class="btn-danger" onclick="supprimerArticle('${article}')">×</button></td>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Historique des ventes
-        function actualiserHistoriqueVentes() {
-            const tbody = document.querySelector('#tableau-ventes tbody');
-            tbody.innerHTML = '';
-            
-            ventes.forEach(vente => {
-                const achatCorrespondant = achats.find(a => a.article === vente.article);
-                const beneficeUnitaire = achatCorrespondant ? (vente.prix - achatCorrespondant.prix) : 0;
-                const beneficeTotal = beneficeUnitaire * vente.quantite;
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${vente.date}</td>
-                    <td>${vente.article}</td>
-                    <td>${vente.quantite}</td>
-                    <td>${vente.prix.toFixed(2)}€</td>
-                    <td>${(vente.prix * vente.quantite).toFixed(2)}€</td>
-                    <td style="color: ${beneficeTotal >= 0 ? 'green' : 'red'}">
-                        ${beneficeTotal.toFixed(2)}€
-                    </td>
-                    <td>
-                        <button class="danger" onclick="supprimerElement('vente', ${vente.id})">Supprimer</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Liste des articles disponibles
-        function actualiserListeArticles() {
-            const select = document.getElementById('vente-article');
-            const stockInfo = document.getElementById('stock-disponible');
-            select.innerHTML = '';
-            
-            const articlesEnStock = {};
-            achats.forEach(achat => {
-                if (!articlesEnStock[achat.article]) {
-                    articlesEnStock[achat.article] = 0;
-                }
-                articlesEnStock[achat.article] += achat.quantite;
-            });
-            
-            ventes.forEach(vente => {
-                if (articlesEnStock[vente.article]) {
-                    articlesEnStock[vente.article] -= vente.quantite;
-                }
-            });
-            
-            // Met à jour la sélection
-            for (const [article, quantite] of Object.entries(articlesEnStock)) {
-                if (quantite > 0) {
-                    const option = document.createElement('option');
-                    option.value = article;
-                    option.textContent = `${article} (${quantite} dispo)`;
-                    select.appendChild(option);
-                }
+                tbodyStock.appendChild(tr);
             }
+        });
+        
+        // Historique achats
+        const tbodyAchats = document.querySelector('#tableau-achats tbody');
+        tbodyAchats.innerHTML = '';
+        achats.forEach(achat => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${achat.date}</td>
+                <td>${achat.article}</td>
+                <td>${achat.prix.toFixed(2)}€</td>
+                <td><button class="btn-danger" onclick="supprimerElement('achat', ${achat.id})">×</button></td>
+            `;
+            tbodyAchats.appendChild(tr);
+        });
+        
+        // Historique ventes
+        const tbodyVentes = document.querySelector('#tableau-ventes tbody');
+        tbodyVentes.innerHTML = '';
+        ventes.forEach(vente => {
+            const achat = achats.find(a => a.article === vente.article);
+            const benefice = achat ? (vente.prix - achat.prix) * vente.quantite : 0;
             
-            // Affiche le stock pour l'article sélectionné
-            select.onchange = function() {
-                const selectedArticle = this.value;
-                if (selectedArticle) {
-                    stockInfo.innerHTML = `Stock: <strong>${articlesEnStock[selectedArticle] || 0}</strong> disponible(s)`;
-                } else {
-                    stockInfo.innerHTML = '';
-                }
-            };
-            
-            if (select.value) {
-                stockInfo.innerHTML = `Stock: <strong>${articlesEnStock[select.value] || 0}</strong> disponible(s)`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${vente.date}</td>
+                <td>${vente.article}</td>
+                <td>${vente.prix.toFixed(2)}€</td>
+                <td style="color:${benefice >= 0 ? 'green' : 'red'}">${benefice.toFixed(2)}€</td>
+                <td><button class="btn-danger" onclick="supprimerElement('vente', ${vente.id})">×</button></td>
+            `;
+            tbodyVentes.appendChild(tr);
+        });
+        
+        // Liste déroulante articles
+        const select = document.getElementById('vente-article');
+        select.innerHTML = '';
+        articles.forEach(article => {
+            if (calculerStock(article) > 0) {
+                const option = document.createElement('option');
+                option.value = article;
+                option.textContent = `${article} (${calculerStock(article)} dispo)`;
+                select.appendChild(option);
             }
-        }
+        });
+        
+        // Résumé financier
+        updateResume();
+    }
+    
+    function supprimerArticle(article) {
+        if (!confirm(`Supprimer TOUS les "${article}" ?`)) return;
+        
+        achats = achats.filter(a => a.article !== article);
+        ventes = ventes.filter(v => v.article !== article);
+        localStorage.setItem('achats', JSON.stringify(achats));
+        localStorage.setItem('ventes', JSON.stringify(ventes));
+        actualiserDonnees();
+    }
+    
+    function updateResume() {
+        const aujourdhui = new Date().toISOString().split('T')[0];
+        const date7Jours = new Date();
+        date7Jours.setDate(date7Jours.getDate() - 7);
+        
+        let benefJour = 0;
+        let benefSemaine = 0;
+        let benefMois = 0;
+        
+        ventes.forEach(vente => {
+            const achat = achats.find(a => a.article === vente.article);
+            const benefice = achat ? (vente.prix - achat.prix) * vente.quantite : 0;
+            
+            if (vente.date === aujourdhui) benefJour += benefice;
+            if (new Date(vente.date) >= date7Jours) benefSemaine += benefice;
+            if (new Date(vente.date).getMonth() === new Date().getMonth()) benefMois += benefice;
+        });
+        
+        document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
+        document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
+        document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
+    }
 
-        // Calcule le stock disponible
-        function calculerStockDisponible(article) {
-            const nbAchats = achats.reduce((total, a) => a.article === article ? total + a.quantite : total, 0);
-            const nbVentes = ventes.reduce((total, v) => v.article === article ? total + v.quantite : total, 0);
-            return nbAchats - nbVentes;
-        }
-
-        // Cartes de résumé
-        function updateCards() {
-            const aujourdhui = new Date().toISOString().split('T')[0];
-            const date7Jours = new Date();
-            date7Jours.setDate(date7Jours.getDate() - 7);
-            const moisActuel = new Date().getMonth() + 1;
-            
-            let benefJour = 0;
-            let benefSemaine = 0;
-            let benefMois = 0;
-            
-            ventes.forEach(vente => {
-                const achat = achats.find(a => a.article === vente.article);
-                const benefice = achat ? (vente.prix - achat.prix) * vente.quantite : 0;
-                
-                // Bénéfice du jour
-                if (vente.date === aujourdhui) {
-                    benefJour += benefice;
-                }
-                
-                // Bénéfice des 7 derniers jours
-                const dateVente = new Date(vente.date);
-                if (dateVente >= date7Jours) {
-                    benefSemaine += benefice;
-                }
-                
-                // Bénéfice du mois
-                if (new Date(vente.date).getMonth() + 1 === moisActuel) {
-                    benefMois += benefice;
-                }
-            });
-            
-            document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
-            document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
-            document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
-        }
-
-        // Graphique des bénéfices
-        function genererGraphique() {
-            const ctx = document.getElementById('graphique-benefices').getContext('2d');
-            
-            // Préparer les données (30 derniers jours)
-            const dates = [];
-            const benefices = [];
-            const aujourdhui = new Date();
-            
-            for (let i = 30; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(aujourdhui.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                dates.push(dateStr.split('-')[2] + '/' + dateStr.split('-')[1]);
-                
-                let beneficeDuJour = 0;
-                ventes.forEach(vente => {
-                    if (vente.date === dateStr) {
-                        const achat = achats.find(a => a.article === vente.article);
-                        beneficeDuJour += achat ? (vente.prix - achat.prix) * vente.quantite : 0;
-                    }
-                });
-                benefices.push(beneficeDuJour);
-            }
-            
-            // Créer ou mettre à jour le graphique
-            if (window.beneficeChart) {
-                window.beneficeChart.data.labels = dates;
-                window.beneficeChart.data.datasets[0].data = benefices;
-                window.beneficeChart.update();
-            } else {
-                window.beneficeChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: dates,
-                        datasets: [{
-                            label: 'Bénéfices (€)',
-                            data: benefices,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Bénéfices (€)'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Dates'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        // Au chargement de la page
-        document.addEventListener('DOMContentLoaded', actualiserTableaux);
-    </script>
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+        actualiserDonnees();
+        showSection('resume');
+    });
+</script>
 </body>
 </html>
