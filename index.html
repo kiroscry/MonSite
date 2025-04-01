@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gestion Achat-Revente</title>
+    <title>Gestion Achat-Revente PRO</title>
     <style>
         body { 
             font-family: 'Segoe UI', Arial, sans-serif; 
@@ -44,7 +44,7 @@
         }
         label {
             display: inline-block;
-            width: 120px;
+            width: 150px;
             font-weight: bold;
             color: #2c3e50;
         }
@@ -63,9 +63,16 @@
             border-radius: 4px;
             font-weight: bold;
             transition: background-color 0.3s;
+            margin: 5px;
         }
         button:hover {
             background-color: #2980b9;
+        }
+        button.danger {
+            background-color: #e74c3c;
+        }
+        button.danger:hover {
+            background-color: #c0392b;
         }
         .cards-container { 
             display: flex; 
@@ -99,6 +106,10 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
+        .stock-warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +129,10 @@
             <h3>Ce mois-ci</h3>
             <p id="benef-mois">0€</p>
         </div>
+        <div class="card">
+            <h3>Stock total</h3>
+            <p id="total-stock">0 articles</p>
+        </div>
     </div>
 
     <!-- Formulaire d'ajout d'achat -->
@@ -127,8 +142,12 @@
         <input type="text" id="achat-article" placeholder="Ex: Pull Zara">
     </div>
     <div class="form-group">
-        <label>Prix d'achat :</label>
-        <input type="number" id="achat-prix" placeholder="Ex: 20">
+        <label>Prix unitaire :</label>
+        <input type="number" id="achat-prix" placeholder="Ex: 20" step="0.01">
+    </div>
+    <div class="form-group">
+        <label>Quantité :</label>
+        <input type="number" id="achat-quantite" value="1" min="1">
     </div>
     <div class="form-group">
         <label>Date :</label>
@@ -141,10 +160,15 @@
     <div class="form-group">
         <label>Article :</label>
         <select id="vente-article"></select>
+        <span id="stock-disponible" style="margin-left: 10px;"></span>
     </div>
     <div class="form-group">
-        <label>Prix de vente :</label>
-        <input type="number" id="vente-prix" placeholder="Ex: 50">
+        <label>Prix unitaire :</label>
+        <input type="number" id="vente-prix" placeholder="Ex: 50" step="0.01">
+    </div>
+    <div class="form-group">
+        <label>Quantité vendue :</label>
+        <input type="number" id="vente-quantite" value="1" min="1">
     </div>
     <div class="form-group">
         <label>Date :</label>
@@ -157,7 +181,11 @@
     <table id="tableau-stock">
         <thead>
             <tr>
-                <th>Article</th><th>Quantité</th><th>Prix réel</th><th>Investissement</th>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Valeur stock</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -166,7 +194,15 @@
     <h2>Historique des Achats</h2>
     <table id="tableau-achats">
         <thead>
-            <tr><th>Date</th><th>Article</th><th>Prix réel</th><th>Frais livraison</th></tr>
+            <tr>
+                <th>Date</th>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Frais livraison</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -174,7 +210,15 @@
     <h2>Historique des Ventes</h2>
     <table id="tableau-ventes">
         <thead>
-            <tr><th>Date</th><th>Article</th><th>Prix vente</th><th>Bénéfice</th></tr>
+            <tr>
+                <th>Date</th>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+                <th>Bénéfice</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -191,40 +235,95 @@
         // Stockage des données
         let achats = JSON.parse(localStorage.getItem('achats')) || [];
         let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
+        let nextId = Math.max(...achats.map(a => a.id || 0), ...ventes.map(v => v.id || 0)) + 1;
 
-        // Fonction pour ajouter un achat (version améliorée avec frais de livraison)
+        // Fonction pour ajouter un achat
         function ajouterAchat() {
             const article = document.getElementById('achat-article').value;
             const prix = parseFloat(document.getElementById('achat-prix').value);
+            const quantite = parseInt(document.getElementById('achat-quantite').value);
             const date = document.getElementById('achat-date').value;
             
-            // Nouveau : Gestion des frais de livraison
-            const fraisLivraison = parseFloat(prompt("Frais de livraison du colis (€) :")) || 0;
-            const nbArticlesColis = parseInt(prompt("Nombre d'articles dans ce colis :")) || 1;
-            const prixReel = prix + (fraisLivraison / nbArticlesColis);
+            if (!article || isNaN(prix) {
+                alert("Veuillez remplir tous les champs obligatoires");
+                return;
+            }
+
+            // Gestion des frais de livraison
+            const fraisLivraison = parseFloat(prompt("Frais de livraison totaux pour ce colis (€) :")) || 0;
+            const nbArticlesColis = parseInt(prompt("Nombre TOTAL d'articles dans ce colis (pour répartition) :")) || quantite;
             
+            const prixReelParArticle = prix + (fraisLivraison / nbArticlesColis);
+
+            // Ajoute l'achat
             achats.push({ 
+                id: nextId++,
                 article, 
-                prix: prixReel,
+                prix: prixReelParArticle,
                 prixInitial: prix,
-                fraisLivraison,
-                nbArticlesColis,
-                date 
+                fraisLivraison: fraisLivraison,
+                quantite,
+                date,
+                nbArticlesColis
             });
             
             localStorage.setItem('achats', JSON.stringify(achats));
             actualiserTableaux();
+            
+            // Réinitialise le formulaire
+            document.getElementById('achat-article').value = '';
+            document.getElementById('achat-prix').value = '';
+            document.getElementById('achat-quantite').value = 1;
         }
 
-        // Fonction pour ajouter une vente (inchangée)
+        // Fonction pour ajouter une vente
         function ajouterVente() {
             const article = document.getElementById('vente-article').value;
             const prix = parseFloat(document.getElementById('vente-prix').value);
+            const quantite = parseInt(document.getElementById('vente-quantite').value);
             const date = document.getElementById('vente-date').value;
             
-            ventes.push({ article, prix, date });
+            if (!article || isNaN(prix) || isNaN(quantite)) {
+                alert("Veuillez remplir tous les champs obligatoires");
+                return;
+            }
+
+            // Vérifie si le stock est suffisant
+            const stockDisponible = calculerStockDisponible(article);
+            if (stockDisponible < quantite) {
+                alert(`Stock insuffisant! Il ne reste que ${stockDisponible} ${article}(s) en stock`);
+                return;
+            }
+
+            // Ajoute la vente
+            ventes.push({ 
+                id: nextId++,
+                article, 
+                prix, 
+                quantite,
+                date 
+            });
+            
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserTableaux();
+            
+            // Réinitialise le formulaire
+            document.getElementById('vente-prix').value = '';
+            document.getElementById('vente-quantite').value = 1;
+        }
+
+        // Fonction pour supprimer un élément
+        function supprimerElement(type, id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
+                if (type === 'achat') {
+                    achats = achats.filter(a => a.id !== id);
+                    localStorage.setItem('achats', JSON.stringify(achats));
+                } else {
+                    ventes = ventes.filter(v => v.id !== id);
+                    localStorage.setItem('ventes', JSON.stringify(ventes));
+                }
+                actualiserTableaux();
+            }
         }
 
         // Actualise tous les tableaux et graphiques
@@ -237,7 +336,7 @@
             genererGraphique();
         }
 
-        // Gestion du stock (version améliorée)
+        // Gestion du stock
         function actualiserStock() {
             const tbody = document.querySelector('#tableau-stock tbody');
             tbody.innerHTML = '';
@@ -245,98 +344,161 @@
             const stock = {};
             achats.forEach(achat => {
                 if (!stock[achat.article]) {
-                    stock[achat.article] = { quantite: 0, prix: achat.prix };
+                    stock[achat.article] = { 
+                        quantite: 0, 
+                        prix: achat.prix,
+                        prixInitial: achat.prixInitial,
+                        fraisLivraison: achat.fraisLivraison 
+                    };
                 }
-                stock[achat.article].quantite += 1;
+                stock[achat.article].quantite += achat.quantite;
             });
             
             ventes.forEach(vente => {
                 if (stock[vente.article]) {
-                    stock[vente.article].quantite -= 1;
+                    stock[vente.article].quantite -= vente.quantite;
                 }
             });
             
+            let totalStock = 0;
+            
             for (const [article, data] of Object.entries(stock)) {
                 if (data.quantite > 0) {
+                    totalStock += data.quantite;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${article}</td>
                         <td>${data.quantite}</td>
-                        <td>${data.prix.toFixed(2)}€</td>
+                        <td>
+                            ${data.prix.toFixed(2)}€<br>
+                            <small>(${data.prixInitial.toFixed(2)}€ + ${(data.fraisLivraison / data.quantite).toFixed(2)}€ livraison)</small>
+                        </td>
                         <td>${(data.quantite * data.prix).toFixed(2)}€</td>
+                        <td>
+                            <button class="danger" onclick="supprimerArticle('${article}')">Supprimer</button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 }
             }
+            
+            document.getElementById('total-stock').textContent = `${totalStock} articles`;
         }
 
-        // Historique des achats (version améliorée)
+        // Supprime tous les articles d'un type
+        function supprimerArticle(article) {
+            if (confirm(`Supprimer TOUS les "${article}" du stock ?`)) {
+                achats = achats.filter(a => a.article !== article);
+                ventes = ventes.filter(v => v.article !== article);
+                localStorage.setItem('achats', JSON.stringify(achats));
+                localStorage.setItem('ventes', JSON.stringify(ventes));
+                actualiserTableaux();
+            }
+        }
+
+        // Historique des achats
         function actualiserHistoriqueAchats() {
             const tbody = document.querySelector('#tableau-achats tbody');
             tbody.innerHTML = '';
+            
             achats.forEach(achat => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${achat.date}</td>
                     <td>${achat.article}</td>
-                    <td>${achat.prix.toFixed(2)}€</td>
-                    <td>${achat.fraisLivraison ? achat.fraisLivraison.toFixed(2)+'€' : 'N/A'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Historique des ventes (version améliorée)
-        function actualiserHistoriqueVentes() {
-            const tbody = document.querySelector('#tableau-ventes tbody');
-            tbody.innerHTML = '';
-            ventes.forEach(vente => {
-                const achatCorrespondant = achats.find(a => a.article === vente.article);
-                const benefice = achatCorrespondant ? (vente.prix - achatCorrespondant.prix) : 'N/A';
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${vente.date}</td>
-                    <td>${vente.article}</td>
-                    <td>${vente.prix.toFixed(2)}€</td>
-                    <td style="color: ${benefice >= 0 ? 'green' : 'red'}">
-                        ${typeof benefice === 'number' ? benefice.toFixed(2)+'€' : benefice}
+                    <td>${achat.quantite}</td>
+                    <td>${achat.prixInitial.toFixed(2)}€</td>
+                    <td>${achat.fraisLivraison.toFixed(2)}€</td>
+                    <td>${(achat.prixInitial * achat.quantite + achat.fraisLivraison).toFixed(2)}€</td>
+                    <td>
+                        <button class="danger" onclick="supprimerElement('achat', ${achat.id})">Supprimer</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // Liste des articles disponibles (inchangée)
+        // Historique des ventes
+        function actualiserHistoriqueVentes() {
+            const tbody = document.querySelector('#tableau-ventes tbody');
+            tbody.innerHTML = '';
+            
+            ventes.forEach(vente => {
+                const achatCorrespondant = achats.find(a => a.article === vente.article);
+                const beneficeUnitaire = achatCorrespondant ? (vente.prix - achatCorrespondant.prix) : 0;
+                const beneficeTotal = beneficeUnitaire * vente.quantite;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${vente.date}</td>
+                    <td>${vente.article}</td>
+                    <td>${vente.quantite}</td>
+                    <td>${vente.prix.toFixed(2)}€</td>
+                    <td>${(vente.prix * vente.quantite).toFixed(2)}€</td>
+                    <td style="color: ${beneficeTotal >= 0 ? 'green' : 'red'}">
+                        ${beneficeTotal.toFixed(2)}€
+                    </td>
+                    <td>
+                        <button class="danger" onclick="supprimerElement('vente', ${vente.id})">Supprimer</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Liste des articles disponibles
         function actualiserListeArticles() {
             const select = document.getElementById('vente-article');
+            const stockInfo = document.getElementById('stock-disponible');
             select.innerHTML = '';
-            const articlesEnStock = {};
             
+            const articlesEnStock = {};
             achats.forEach(achat => {
                 if (!articlesEnStock[achat.article]) {
                     articlesEnStock[achat.article] = 0;
                 }
-                articlesEnStock[achat.article] += 1;
+                articlesEnStock[achat.article] += achat.quantite;
             });
             
             ventes.forEach(vente => {
                 if (articlesEnStock[vente.article]) {
-                    articlesEnStock[vente.article] -= 1;
+                    articlesEnStock[vente.article] -= vente.quantite;
                 }
             });
             
+            // Met à jour la sélection
             for (const [article, quantite] of Object.entries(articlesEnStock)) {
                 if (quantite > 0) {
                     const option = document.createElement('option');
                     option.value = article;
-                    option.textContent = article;
+                    option.textContent = `${article} (${quantite} dispo)`;
                     select.appendChild(option);
                 }
             }
+            
+            // Affiche le stock pour l'article sélectionné
+            select.onchange = function() {
+                const selectedArticle = this.value;
+                if (selectedArticle) {
+                    stockInfo.innerHTML = `Stock: <strong>${articlesEnStock[selectedArticle] || 0}</strong> disponible(s)`;
+                } else {
+                    stockInfo.innerHTML = '';
+                }
+            };
+            
+            if (select.value) {
+                stockInfo.innerHTML = `Stock: <strong>${articlesEnStock[select.value] || 0}</strong> disponible(s)`;
+            }
         }
 
-        // Nouveau : Cartes de résumé
+        // Calcule le stock disponible
+        function calculerStockDisponible(article) {
+            const nbAchats = achats.reduce((total, a) => a.article === article ? total + a.quantite : total, 0);
+            const nbVentes = ventes.reduce((total, v) => v.article === article ? total + v.quantite : total, 0);
+            return nbAchats - nbVentes;
+        }
+
+        // Cartes de résumé
         function updateCards() {
             const aujourdhui = new Date().toISOString().split('T')[0];
             const date7Jours = new Date();
@@ -349,7 +511,7 @@
             
             ventes.forEach(vente => {
                 const achat = achats.find(a => a.article === vente.article);
-                const benefice = achat ? (vente.prix - achat.prix) : 0;
+                const benefice = achat ? (vente.prix - achat.prix) * vente.quantite : 0;
                 
                 // Bénéfice du jour
                 if (vente.date === aujourdhui) {
@@ -373,7 +535,7 @@
             document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
         }
 
-        // Nouveau : Graphique des bénéfices
+        // Graphique des bénéfices
         function genererGraphique() {
             const ctx = document.getElementById('graphique-benefices').getContext('2d');
             
@@ -392,7 +554,7 @@
                 ventes.forEach(vente => {
                     if (vente.date === dateStr) {
                         const achat = achats.find(a => a.article === vente.article);
-                        beneficeDuJour += achat ? (vente.prix - achat.prix) : 0;
+                        beneficeDuJour += achat ? (vente.prix - achat.prix) * vente.quantite : 0;
                     }
                 });
                 benefices.push(beneficeDuJour);
@@ -420,7 +582,17 @@
                         responsive: true,
                         scales: {
                             y: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Bénéfices (€)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Dates'
+                                }
                             }
                         }
                     }
