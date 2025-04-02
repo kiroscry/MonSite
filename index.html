@@ -432,6 +432,24 @@
             </div>
             
             <div class="card animate-in" style="animation-delay: 0.6s">
+                <h2>Top Produits</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Article</th>
+                            <th>Prix Achat</th>
+                            <th>Prix Vente</th>
+                            <th>Marge</th>
+                            <th>Rentabilité</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-products">
+                        <!-- Rempli par JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card animate-in" style="animation-delay: 0.7s">
                 <h2>Dernières Ventes</h2>
                 <table class="data-table">
                     <thead>
@@ -454,7 +472,10 @@
                 <h2>Nouvel Achat</h2>
                 <div class="form-group">
                     <label class="form-label">Article</label>
-                    <input type="text" class="form-input" id="achat-article" placeholder="Nom de l'article">
+                    <select class="form-input" id="achat-article">
+                        <!-- Rempli par JS -->
+                    </select>
+                    <button class="btn-sm" style="margin-top: 5px;" onclick="openAddArticleModal()">+ Nouvel article</button>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Catégorie</label>
@@ -742,6 +763,34 @@
         </a>
     </nav>
     
+    <!-- Modal pour ajouter un nouvel article -->
+    <div class="modal" id="add-article-modal">
+        <div class="modal-content">
+            <h2>Ajouter un nouvel article</h2>
+            <div class="form-group">
+                <label class="form-label">Nom de l'article</label>
+                <input type="text" class="form-input" id="new-article-name" placeholder="Nom de l'article">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <select class="form-input" id="new-article-category">
+                    <option value="chaussures">Chaussures</option>
+                    <option value="pulls">Pulls</option>
+                    <option value="teeshirts">T-shirts</option>
+                    <option value="vestes">Vestes</option>
+                    <option value="shorts">Shorts</option>
+                    <option value="maillots">Maillots</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Prix de référence (€)</label>
+                <input type="number" class="form-input" id="new-article-price" step="0.01" placeholder="20.00">
+            </div>
+            <button class="btn" onclick="addNewArticle()">Ajouter l'article</button>
+            <button class="btn btn-danger" style="margin-top: 10px;" onclick="closeAddArticleModal()">Annuler</button>
+        </div>
+    </div>
+    
     <div class="modal" id="export-modal">
         <div class="modal-content">
             <h2>Exporter les données</h2>
@@ -772,12 +821,14 @@
             { id: 1, nom: "Fournisseur par défaut", contact: "contact@default.com" }
         ];
         let retours = JSON.parse(localStorage.getItem('retours')) || [];
+        let articles = JSON.parse(localStorage.getItem('articles')) || [];
         let nextId = Math.max(
             0, 
             ...achats.map(a => a.id || 0), 
             ...ventes.map(v => v.id || 0),
             ...fournisseurs.map(f => f.id || 0),
-            ...retours.map(r => r.id || 0)
+            ...retours.map(r => r.id || 0),
+            ...articles.map(a => a.id || 0)
         ) + 1;
         
         // Graphiques
@@ -934,6 +985,87 @@
             };
         }
         
+        // Gestion des articles
+        function openAddArticleModal() {
+            document.getElementById('add-article-modal').style.display = 'flex';
+        }
+        
+        function closeAddArticleModal() {
+            document.getElementById('add-article-modal').style.display = 'none';
+        }
+        
+        function addNewArticle() {
+            const nom = document.getElementById('new-article-name').value.trim();
+            const categorie = document.getElementById('new-article-category').value;
+            const prix = parseFloat(document.getElementById('new-article-price').value);
+            
+            if (!nom || isNaN(prix)) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+            
+            const nouvelArticle = {
+                id: nextId++,
+                nom,
+                categorie,
+                prixReference: prix
+            };
+            
+            articles.push(nouvelArticle);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            
+            // Mettre à jour les sélecteurs
+            updateArticleSelects();
+            
+            // Sélectionner le nouvel article
+            document.getElementById('achat-article').value = nouvelArticle.id;
+            
+            closeAddArticleModal();
+            showNotification('Article ajouté avec succès', 'success');
+        }
+        
+        function updateArticleSelects() {
+            // Sélecteur pour les achats
+            const selectAchat = document.getElementById('achat-article');
+            selectAchat.innerHTML = '';
+            
+            articles.forEach(article => {
+                const option = document.createElement('option');
+                option.value = article.id;
+                option.textContent = `${article.nom} (${article.categorie})`;
+                selectAchat.appendChild(option);
+            });
+            
+            // Sélecteur pour les ventes
+            const selectVente = document.getElementById('vente-article');
+            selectVente.innerHTML = '';
+            
+            articles.forEach(article => {
+                const stock = calculerStock(article.nom);
+                if (stock > 0) {
+                    const option = document.createElement('option');
+                    option.value = article.nom;
+                    option.textContent = `${article.nom} (${stock} dispo)`;
+                    selectVente.appendChild(option);
+                }
+            });
+            
+            // Sélecteur pour les frais de livraison
+            const selectLivraison = document.getElementById('livraison-article');
+            selectLivraison.innerHTML = '';
+            
+            articles.forEach(article => {
+                const option = document.createElement('option');
+                option.value = article.nom;
+                option.textContent = article.nom;
+                selectLivraison.appendChild(option);
+            });
+        }
+        
+        function getArticleById(id) {
+            return articles.find(a => a.id === id);
+        }
+        
         // Confirmation des actions
         function showConfirmation(action) {
             currentAction = action;
@@ -944,7 +1076,8 @@
             
             switch(action) {
                 case 'achat':
-                    const article = document.getElementById('achat-article').value.trim();
+                    const articleId = parseInt(document.getElementById('achat-article').value);
+                    const article = getArticleById(articleId);
                     const prix = parseFloat(document.getElementById('achat-prix').value);
                     const quantite = parseInt(document.getElementById('achat-quantite').value);
                     const date = document.getElementById('achat-date').value;
@@ -956,8 +1089,16 @@
                         showNotification('Veuillez remplir tous les champs obligatoires', 'error');
                         isValid = false;
                     } else {
-                        actionData = { article, prix, quantite, date, categorie, fournisseur };
-                        message = `Confirmez-vous l'achat de ${quantite} ${article} à ${prix.toFixed(2)}€ pièce ?`;
+                        actionData = { 
+                            article: article.nom, 
+                            prix, 
+                            quantite, 
+                            date, 
+                            categorie, 
+                            fournisseur,
+                            articleId: article.id
+                        };
+                        message = `Confirmez-vous l'achat de ${quantite} ${article.nom} à ${prix.toFixed(2)}€ pièce ?`;
                     }
                     break;
                     
@@ -1065,6 +1206,7 @@
             const nouvelAchat = {
                 id: nextId++,
                 article: data.article,
+                articleId: data.articleId,
                 categorie: data.categorie,
                 fournisseur: data.fournisseur.nom,
                 fournisseurId: data.fournisseur.id,
@@ -1081,7 +1223,6 @@
             actualiserDonnees();
             
             // Réinitialisation du formulaire
-            document.getElementById('achat-article').value = '';
             document.getElementById('achat-prix').value = '';
             document.getElementById('achat-quantite').value = 1;
             
@@ -1285,37 +1426,8 @@
 
         // Actualisation de l'interface
         function actualiserDonnees() {
-            // Remplir les sélecteurs
-            const articlesUniques = [...new Set(achats.map(a => a.article))];
-            
-            // Sélecteur pour les ventes
-            const selectVente = document.getElementById('vente-article');
-            selectVente.innerHTML = '';
-            articlesUniques.forEach(article => {
-                const stock = calculerStock(article);
-                if (stock > 0) {
-                    const option = document.createElement('option');
-                    option.value = article;
-                    option.textContent = `${article} (${stock} dispo)`;
-                    selectVente.appendChild(option);
-                }
-            });
-            
-            // Mise à jour du texte de stock disponible
-            if (selectVente.value) {
-                const stock = calculerStock(selectVente.value);
-                document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
-            }
-            
-            // Sélecteur pour les frais de livraison
-            const selectLivraison = document.getElementById('livraison-article');
-            selectLivraison.innerHTML = '';
-            articlesUniques.forEach(article => {
-                const option = document.createElement('option');
-                option.value = article;
-                option.textContent = article;
-                selectLivraison.appendChild(option);
-            });
+            // Mettre à jour les sélecteurs d'articles
+            updateArticleSelects();
             
             // Sélecteur fournisseurs
             const selectFournisseur = document.getElementById('achat-fournisseur');
@@ -1342,6 +1454,7 @@
             tbodyStock.innerHTML = '';
             
             let valeurTotaleStock = 0;
+            const articlesUniques = [...new Set(achats.map(a => a.article))];
             const articlesAvecStock = articlesUniques.filter(article => calculerStock(article) > 0);
             
             articlesAvecStock.forEach(article => {
@@ -1416,6 +1529,49 @@
                     <td class="${benefice >= 0 ? 'text-success' : 'text-danger'}">${benefice.toFixed(2)}€</td>
                 `;
                 tbodyRecentSales.appendChild(tr);
+            });
+            
+            // Top produits
+            const tbodyTopProducts = document.getElementById('top-products');
+            tbodyTopProducts.innerHTML = '';
+            
+            const produits = [];
+            const articlesVendus = [...new Set(ventes.map(v => v.article))];
+            
+            articlesVendus.forEach(article => {
+                const ventesArticle = ventes.filter(v => v.article === article);
+                const achat = achats.find(a => a.article === article);
+                
+                if (achat) {
+                    const prixAchat = achat.prixReel;
+                    const prixVente = ventesArticle.reduce((sum, v) => sum + v.prix, 0) / ventesArticle.length;
+                    const marge = prixVente - prixAchat;
+                    const rentabilite = (marge / prixAchat) * 100;
+                    
+                    produits.push({
+                        article,
+                        prixAchat,
+                        prixVente,
+                        marge,
+                        rentabilite
+                    });
+                }
+            });
+            
+            // Trier par rentabilité décroissante
+            produits.sort((a, b) => b.rentabilite - a.rentabilite);
+            
+            // Afficher les 5 premiers
+            produits.slice(0, 5).forEach(prod => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${prod.article}</td>
+                    <td>${prod.prixAchat.toFixed(2)}€</td>
+                    <td>${prod.prixVente.toFixed(2)}€</td>
+                    <td>${prod.marge.toFixed(2)}€</td>
+                    <td class="${prod.rentabilite >= 0 ? 'text-success' : 'text-danger'}">${prod.rentabilite.toFixed(1)}%</td>
+                `;
+                tbodyTopProducts.appendChild(tr);
             });
             
             // Mise à jour des stats
@@ -1616,6 +1772,7 @@
                 ventes,
                 fournisseurs,
                 retours,
+                articles,
                 nextId
             };
             
@@ -1679,12 +1836,14 @@
                         if (data.ventes) ventes = data.ventes;
                         if (data.fournisseurs) fournisseurs = data.fournisseurs;
                         if (data.retours) retours = data.retours;
+                        if (data.articles) articles = data.articles;
                         if (data.nextId) nextId = data.nextId;
                         
                         localStorage.setItem('achats', JSON.stringify(achats));
                         localStorage.setItem('ventes', JSON.stringify(ventes));
                         localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
                         localStorage.setItem('retours', JSON.stringify(retours));
+                        localStorage.setItem('articles', JSON.stringify(articles));
                         
                         actualiserDonnees();
                         showNotification('Import réussi', 'success');
@@ -1710,6 +1869,7 @@
                 ventes: [],
                 fournisseurs: [],
                 retours: [],
+                articles: [],
                 nextId: 1
             };
             
