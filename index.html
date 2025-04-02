@@ -29,14 +29,12 @@
             line-height: 1.5;
         }
         
-        /* Layout Pro */
         .app-container {
             max-width: 100%;
             min-height: 100vh;
             padding-bottom: 70px;
         }
         
-        /* Header Style App */
         .app-header {
             background: white;
             padding: 15px;
@@ -56,7 +54,6 @@
             margin: 0;
         }
         
-        /* Navigation iOS-like */
         .tab-bar {
             position: fixed;
             bottom: 0;
@@ -88,7 +85,6 @@
             margin-bottom: 4px;
         }
         
-        /* Cards Modernes */
         .card {
             background: white;
             border-radius: 12px;
@@ -124,7 +120,6 @@
             color: #6B7280;
         }
         
-        /* Formulaires Pro */
         .form-group {
             margin-bottom: 16px;
         }
@@ -153,7 +148,6 @@
             background: white;
         }
         
-        /* Boutons */
         .btn {
             display: inline-block;
             padding: 12px 24px;
@@ -186,7 +180,6 @@
             background: var(--warning);
         }
         
-        /* Tableaux */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -213,7 +206,6 @@
             border-bottom: none;
         }
         
-        /* Badges */
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -237,7 +229,6 @@
             color: var(--warning);
         }
         
-        /* Utilitaires */
         .text-right {
             text-align: right;
         }
@@ -258,7 +249,6 @@
             display: none;
         }
         
-        /* Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -268,7 +258,6 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
         
-        /* Graphiques */
         .chart-container {
             position: relative;
             height: 250px;
@@ -276,7 +265,6 @@
             margin: 20px 0;
         }
         
-        /* Tabs */
         .tabs {
             display: flex;
             border-bottom: 1px solid #E5E7EB;
@@ -296,7 +284,6 @@
             border-bottom: 2px solid var(--primary);
         }
         
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -321,7 +308,6 @@
             animation: fadeIn 0.3s ease-out;
         }
         
-        /* Notifications */
         .notification {
             position: fixed;
             top: 20px;
@@ -348,23 +334,68 @@
             border-left: 4px solid var(--warning);
         }
         
-        /* Responsive */
         @media (min-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(5, 1fr);
             }
         }
+        
+        /* Popup de confirmation */
+        .confirmation-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .confirmation-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .confirmation-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .confirm-btn {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #E5E7EB;
+            color: var(--dark);
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <h1 class="app-title">StockPro</h1>
             <button class="btn-sm" onclick="openExportModal()">Exporter</button>
         </header>
         
-        <!-- Section Résumé -->
         <section id="dashboard-section" class="section">
             <div class="stats-grid">
                 <div class="stat-card animate-in">
@@ -435,7 +466,6 @@
             </div>
         </section>
         
-        <!-- Section Achats -->
         <section id="achats-section" class="section hidden">
             <div class="card">
                 <h2>Nouvel Achat</h2>
@@ -472,7 +502,7 @@
                     <label class="form-label">Date</label>
                     <input type="date" class="form-input" id="achat-date">
                 </div>
-                <button class="btn" onclick="ajouterAchat()">Enregistrer l'achat</button>
+                <button class="btn" onclick="showConfirmation('achat')">Enregistrer l'achat</button>
             </div>
             
             <div class="card">
@@ -491,7 +521,7 @@
                     <label class="form-label">Nombre d'articles dans le colis</label>
                     <input type="number" class="form-input" id="livraison-quantite" value="1" min="1">
                 </div>
-                <button class="btn" onclick="ajouterLivraison()">Appliquer les frais</button>
+                <button class="btn" onclick="showConfirmation('livraison')">Appliquer les frais</button>
             </div>
             
             <div class="card">
@@ -504,7 +534,7 @@
                     <label class="form-label">Contact</label>
                     <input type="text" class="form-input" id="fournisseur-contact" placeholder="Email ou téléphone">
                 </div>
-                <button class="btn" onclick="ajouterFournisseur()">Ajouter fournisseur</button>
+                <button class="btn" onclick="showConfirmation('fournisseur')">Ajouter fournisseur</button>
                 
                 <table class="data-table" style="margin-top: 20px;">
                     <thead>
@@ -540,7 +570,6 @@
             </div>
         </section>
         
-        <!-- Section Ventes -->
         <section id="ventes-section" class="section hidden">
             <div class="card">
                 <h2>Nouvelle Vente</h2>
@@ -571,7 +600,7 @@
                         <option value="autre">Autre</option>
                     </select>
                 </div>
-                <button class="btn" onclick="ajouterVente()">Enregistrer la vente</button>
+                <button class="btn" onclick="showConfirmation('vente')">Enregistrer la vente</button>
             </div>
             
             <div class="card">
@@ -595,7 +624,7 @@
                         <option value="autre">Autre raison</option>
                     </select>
                 </div>
-                <button class="btn btn-warning" onclick="enregistrerRetour()">Enregistrer le retour</button>
+                <button class="btn btn-warning" onclick="showConfirmation('retour')">Enregistrer le retour</button>
             </div>
             
             <div class="card">
@@ -624,7 +653,6 @@
             </div>
         </section>
         
-        <!-- Section Stock -->
         <section id="stock-section" class="section hidden">
             <div class="card">
                 <h2>Stock actuel</h2>
@@ -662,7 +690,6 @@
             </div>
         </section>
         
-        <!-- Section Rapports -->
         <section id="rapports-section" class="section hidden">
             <div class="card">
                 <h2>Générer un rapport</h2>
@@ -709,7 +736,6 @@
         </section>
     </div>
     
-    <!-- Tab Bar -->
     <nav class="tab-bar">
         <a href="#" class="tab-item active" onclick="showSection('dashboard')">
             <span class="tab-icon">📊</span>
@@ -733,7 +759,6 @@
         </a>
     </nav>
     
-    <!-- Modal Export -->
     <div class="modal" id="export-modal">
         <div class="modal-content">
             <h2>Exporter les données</h2>
@@ -744,8 +769,17 @@
         </div>
     </div>
     
-    <!-- Notification -->
     <div id="notification" class="notification hidden"></div>
+    
+    <div id="confirmation-popup" class="confirmation-popup hidden">
+        <div class="confirmation-content">
+            <h3 id="confirmation-message"></h3>
+            <div class="confirmation-buttons">
+                <button class="confirm-btn" onclick="confirmAction()">Confirmer</button>
+                <button class="cancel-btn" onclick="cancelAction()">Annuler</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Stockage des données
@@ -766,6 +800,10 @@
         // Graphiques
         let dashboardChart;
         let categoriesChart;
+        
+        // Confirmation
+        let currentAction = '';
+        let actionData = {};
 
         // Navigation
         function showSection(section) {
@@ -794,7 +832,7 @@
         function initDashboardChart() {
             const ctx = document.getElementById('dashboard-chart').getContext('2d');
             dashboardChart = new Chart(ctx, {
-                type: 'line', // Changé de 'bar' à 'line' pour avoir des courbes
+                type: 'line',
                 data: getChartData('benefices'),
                 options: {
                     responsive: true,
@@ -877,7 +915,7 @@
                                  type === 'ventes' ? 'rgba(16, 185, 129, 1)' : 'rgba(245, 158, 11, 1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4 // Pour des courbes plus lisses
+                    tension: 0.4
                 }]
             };
         }
@@ -913,32 +951,145 @@
             };
         }
         
-        // Ajout d'achat
-        function ajouterAchat() {
-            const article = document.getElementById('achat-article').value.trim();
-            const categorie = document.getElementById('achat-categorie').value;
-            const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
-            const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
-            const prix = parseFloat(document.getElementById('achat-prix').value);
-            const quantite = parseInt(document.getElementById('achat-quantite').value);
-            const date = document.getElementById('achat-date').value;
-
-            if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
-                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                return;
+        // Confirmation des actions
+        function showConfirmation(action) {
+            currentAction = action;
+            actionData = {};
+            
+            let message = '';
+            let isValid = true;
+            
+            switch(action) {
+                case 'achat':
+                    const article = document.getElementById('achat-article').value.trim();
+                    const prix = parseFloat(document.getElementById('achat-prix').value);
+                    const quantite = parseInt(document.getElementById('achat-quantite').value);
+                    const date = document.getElementById('achat-date').value;
+                    const categorie = document.getElementById('achat-categorie').value;
+                    const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
+                    const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
+                    
+                    if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
+                        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                        isValid = false;
+                    } else {
+                        actionData = { article, prix, quantite, date, categorie, fournisseur };
+                        message = `Confirmez-vous l'achat de ${quantite} ${article} à ${prix.toFixed(2)}€ pièce ?`;
+                    }
+                    break;
+                    
+                case 'vente':
+                    const venteArticle = document.getElementById('vente-article').value;
+                    const ventePrix = parseFloat(document.getElementById('vente-prix').value);
+                    const venteQuantite = parseInt(document.getElementById('vente-quantite').value);
+                    const venteDate = document.getElementById('vente-date').value;
+                    const venteType = document.getElementById('vente-type').value;
+                    
+                    if (!venteArticle || isNaN(ventePrix) || isNaN(venteQuantite) || !venteDate) {
+                        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                        isValid = false;
+                    } else if (calculerStock(venteArticle) < venteQuantite) {
+                        showNotification(`Stock insuffisant! Il reste ${calculerStock(venteArticle)} ${venteArticle}(s)`, 'warning');
+                        isValid = false;
+                    } else {
+                        actionData = { article: venteArticle, prix: ventePrix, quantite: venteQuantite, date: venteDate, type: venteType };
+                        message = `Confirmez-vous la vente de ${venteQuantite} ${venteArticle} à ${ventePrix.toFixed(2)}€ pièce ?`;
+                    }
+                    break;
+                    
+                case 'livraison':
+                    const livraisonArticle = document.getElementById('livraison-article').value;
+                    const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
+                    const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
+                    
+                    if (!livraisonArticle || frais <= 0) {
+                        showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
+                        isValid = false;
+                    } else {
+                        actionData = { article: livraisonArticle, frais, quantiteColis };
+                        message = `Confirmez-vous l'ajout de ${frais.toFixed(2)}€ de frais pour ${livraisonArticle} ?`;
+                    }
+                    break;
+                    
+                case 'fournisseur':
+                    const nom = document.getElementById('fournisseur-nom').value.trim();
+                    const contact = document.getElementById('fournisseur-contact').value.trim();
+                    
+                    if (!nom || !contact) {
+                        showNotification('Veuillez remplir tous les champs', 'error');
+                        isValid = false;
+                    } else {
+                        actionData = { nom, contact };
+                        message = `Confirmez-vous l'ajout du fournisseur ${nom} ?`;
+                    }
+                    break;
+                    
+                case 'retour':
+                    const venteId = parseInt(document.getElementById('retour-vente').value);
+                    const retourQuantite = parseInt(document.getElementById('retour-quantite').value) || 1;
+                    const raison = document.getElementById('retour-raison').value;
+                    
+                    const vente = ventes.find(v => v.id === venteId);
+                    
+                    if (!vente || retourQuantite > vente.quantite) {
+                        showNotification('Quantité de retour invalide', 'error');
+                        isValid = false;
+                    } else {
+                        actionData = { venteId, quantite: retourQuantite, raison, article: vente.article };
+                        message = `Confirmez-vous le retour de ${retourQuantite} ${vente.article} pour raison "${raison}" ?`;
+                    }
+                    break;
             }
-
+            
+            if (isValid) {
+                document.getElementById('confirmation-message').textContent = message;
+                document.getElementById('confirmation-popup').classList.remove('hidden');
+            }
+        }
+        
+        function confirmAction() {
+            document.getElementById('confirmation-popup').classList.add('hidden');
+            
+            switch(currentAction) {
+                case 'achat':
+                    ajouterAchat(actionData);
+                    break;
+                    
+                case 'vente':
+                    ajouterVente(actionData);
+                    break;
+                    
+                case 'livraison':
+                    ajouterLivraison(actionData);
+                    break;
+                    
+                case 'fournisseur':
+                    ajouterFournisseur(actionData);
+                    break;
+                    
+                case 'retour':
+                    enregistrerRetour(actionData);
+                    break;
+            }
+        }
+        
+        function cancelAction() {
+            document.getElementById('confirmation-popup').classList.add('hidden');
+        }
+        
+        // Ajout d'achat
+        function ajouterAchat(data) {
             const nouvelAchat = {
                 id: nextId++,
-                article,
-                categorie,
-                fournisseur: fournisseur.nom,
-                fournisseurId: fournisseur.id,
-                prixInitial: prix,
-                prixReel: prix,
+                article: data.article,
+                categorie: data.categorie,
+                fournisseur: data.fournisseur.nom,
+                fournisseurId: data.fournisseur.id,
+                prixInitial: data.prix,
+                prixReel: data.prix,
                 fraisLivraison: 0,
-                quantite,
-                date,
+                quantite: data.quantite,
+                date: data.date,
                 livraisonAjoutee: false
             };
 
@@ -951,23 +1102,14 @@
             document.getElementById('achat-prix').value = '';
             document.getElementById('achat-quantite').value = 1;
             
-            showNotification(`Achat de ${quantite} ${article} enregistré avec succès`, 'success');
+            showNotification(`Achat de ${data.quantite} ${data.article} enregistré avec succès`, 'success');
         }
 
         // Ajout des frais de livraison
-        function ajouterLivraison() {
-            const article = document.getElementById('livraison-article').value;
-            const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
-            const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
-
-            if (!article || frais <= 0) {
-                showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
-                return;
-            }
-
+        function ajouterLivraison(data) {
             // Trouve tous les achats de cet article sans frais de livraison
             const achatsCibles = achats.filter(a => 
-                a.article === article && !a.livraisonAjoutee
+                a.article === data.article && !a.livraisonAjoutee
             );
 
             if (achatsCibles.length === 0) {
@@ -976,7 +1118,7 @@
             }
 
             // Calcule le prix réel avec frais de livraison répartis
-            const fraisParUnite = frais / quantiteColis;
+            const fraisParUnite = data.frais / data.quantiteColis;
             
             achatsCibles.forEach(achat => {
                 achat.prixReel = achat.prixInitial + fraisParUnite;
@@ -991,34 +1133,18 @@
             document.getElementById('achat-livraison').value = '';
             document.getElementById('livraison-quantite').value = 1;
             
-            showNotification(`Frais de livraison de ${frais.toFixed(2)}€ appliqués à ${article}`, 'success');
+            showNotification(`Frais de livraison de ${data.frais.toFixed(2)}€ appliqués à ${data.article}`, 'success');
         }
 
         // Ajout de vente
-        function ajouterVente() {
-            const article = document.getElementById('vente-article').value;
-            const prix = parseFloat(document.getElementById('vente-prix').value);
-            const quantite = parseInt(document.getElementById('vente-quantite').value);
-            const date = document.getElementById('vente-date').value;
-            const type = document.getElementById('vente-type').value;
-
-            if (!article || isNaN(prix) || isNaN(quantite) || !date) {
-                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                return;
-            }
-
-            if (calculerStock(article) < quantite) {
-                showNotification(`Stock insuffisant! Il reste ${calculerStock(article)} ${article}(s)`, 'warning');
-                return;
-            }
-
+        function ajouterVente(data) {
             const nouvelleVente = {
                 id: nextId++,
-                article,
-                prix,
-                quantite,
-                date,
-                type,
+                article: data.article,
+                prix: data.prix,
+                quantite: data.quantite,
+                date: data.date,
+                type: data.type,
                 isRetour: false
             };
 
@@ -1030,59 +1156,41 @@
             document.getElementById('vente-prix').value = '';
             document.getElementById('vente-quantite').value = 1;
             
-            showNotification(`Vente de ${quantite} ${article} enregistrée avec succès`, 'success');
+            showNotification(`Vente de ${data.quantite} ${data.article} enregistrée avec succès`, 'success');
         }
         
         // Enregistrer un retour
-        function enregistrerRetour() {
-            const venteId = parseInt(document.getElementById('retour-vente').value);
-            const quantite = parseInt(document.getElementById('retour-quantite').value) || 1;
-            const raison = document.getElementById('retour-raison').value;
-            
-            const vente = ventes.find(v => v.id === venteId);
-            
-            if (!vente || quantite > vente.quantite) {
-                showNotification('Quantité de retour invalide', 'error');
-                return;
-            }
-            
+        function enregistrerRetour(data) {
             retours.push({
                 id: nextId++,
-                venteId,
-                article: vente.article,
-                quantite,
+                venteId: data.venteId,
+                article: data.article,
+                quantite: data.quantite,
                 date: new Date().toISOString().split('T')[0],
-                raison
+                raison: data.raison
             });
             
             localStorage.setItem('retours', JSON.stringify(retours));
             
             // Mettre à jour la quantité vendue
-            vente.quantite -= quantite;
+            const vente = ventes.find(v => v.id === data.venteId);
+            vente.quantite -= data.quantite;
             if (vente.quantite <= 0) {
-                ventes = ventes.filter(v => v.id !== venteId);
+                ventes = ventes.filter(v => v.id !== data.venteId);
             }
             
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserDonnees();
             
-            showNotification(`Retour de ${quantite} ${vente.article} enregistré`, 'success');
+            showNotification(`Retour de ${data.quantite} ${data.article} enregistré`, 'success');
         }
 
         // Gestion des fournisseurs
-        function ajouterFournisseur() {
-            const nom = document.getElementById('fournisseur-nom').value.trim();
-            const contact = document.getElementById('fournisseur-contact').value.trim();
-            
-            if (!nom || !contact) {
-                showNotification('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-            
+        function ajouterFournisseur(data) {
             fournisseurs.push({
                 id: nextId++,
-                nom,
-                contact
+                nom: data.nom,
+                contact: data.contact
             });
             
             localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
@@ -1092,7 +1200,7 @@
             document.getElementById('fournisseur-nom').value = '';
             document.getElementById('fournisseur-contact').value = '';
             
-            showNotification(`Fournisseur ${nom} ajouté avec succès`, 'success');
+            showNotification(`Fournisseur ${data.nom} ajouté avec succès`, 'success');
         }
         
         function supprimerFournisseur(id) {
@@ -1120,7 +1228,7 @@
 
         // Suppression d'éléments
         function supprimerElement(type, id) {
-            if (!confirm("Supprimer définitivement cet élément ?")) return;
+            if (!confirm(`Supprimer définitivement cet ${type} ?`)) return;
             
             if (type === 'achat') {
                 achats = achats.filter(a => a.id !== id);
@@ -1131,7 +1239,7 @@
             }
             
             actualiserDonnees();
-            showNotification('Élément supprimé', 'success');
+            showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} supprimé`, 'success');
         }
         
         function supprimerArticle(article) {
@@ -1169,9 +1277,10 @@
                         ...vente,
                         isRetour: true,
                         quantite: r.quantite,
-                        date: r.date
+                        date: r.date,
+                        prix: vente ? vente.prix : 0
                     };
-                });
+                }).filter(v => v.id); // Filtrer les ventes non trouvées
             }
             
             ventesFiltrees.forEach(vente => {
@@ -1437,7 +1546,7 @@
             let dateDebut, dateFin;
             const aujourdhui = new Date();
             
-            switch (periode) {
+            switch(periode) {
                 case '7jours':
                     dateDebut = new Date(aujourdhui);
                     dateDebut.setDate(aujourdhui.getDate() - 6);
@@ -1649,7 +1758,6 @@
         });
         
         function parseCSV(csv) {
-            // Implémentation simplifiée - à adapter selon votre structure CSV
             const lines = csv.split('\n');
             const data = {
                 achats: [],
