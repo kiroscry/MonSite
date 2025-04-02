@@ -446,11 +446,12 @@
                 <div class="form-group">
                     <label class="form-label">Catégorie</label>
                     <select class="form-input" id="achat-categorie">
-                        <option value="autre">Autre</option>
-                        <option value="electronique">Électronique</option>
-                        <option value="vetement">Vêtement</option>
-                        <option value="alimentaire">Alimentaire</option>
-                        <option value="cosmetique">Cosmétique</option>
+                        <option value="chaussures">Chaussures</option>
+                        <option value="pulls">Pulls</option>
+                        <option value="teeshirts">T-shirts</option>
+                        <option value="vestes">Vestes</option>
+                        <option value="shorts">Shorts</option>
+                        <option value="maillots">Maillots</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -793,7 +794,7 @@
         function initDashboardChart() {
             const ctx = document.getElementById('dashboard-chart').getContext('2d');
             dashboardChart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line', // Changé de 'bar' à 'line' pour avoir des courbes
                 data: getChartData('benefices'),
                 options: {
                     responsive: true,
@@ -870,11 +871,13 @@
                     label: type === 'benefices' ? 'Bénéfices (€)' : 
                            type === 'ventes' ? 'Nombre de ventes' : 'Quantité en stock',
                     data: data,
-                    backgroundColor: type === 'benefices' ? 'rgba(99, 102, 241, 0.7)' :
-                                   type === 'ventes' ? 'rgba(16, 185, 129, 0.7)' : 'rgba(245, 158, 11, 0.7)',
+                    backgroundColor: type === 'benefices' ? 'rgba(99, 102, 241, 0.2)' :
+                                   type === 'ventes' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
                     borderColor: type === 'benefices' ? 'rgba(99, 102, 241, 1)' :
                                  type === 'ventes' ? 'rgba(16, 185, 129, 1)' : 'rgba(245, 158, 11, 1)',
-                    borderWidth: 1
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4 // Pour des courbes plus lisses
                 }]
             };
         }
@@ -925,20 +928,21 @@
                 return;
             }
 
-            achats.push({
+            const nouvelAchat = {
                 id: nextId++,
                 article,
                 categorie,
                 fournisseur: fournisseur.nom,
                 fournisseurId: fournisseur.id,
                 prixInitial: prix,
-                prixReel: prix, // Mise à jour plus tard avec frais de livraison
+                prixReel: prix,
                 fraisLivraison: 0,
                 quantite,
                 date,
                 livraisonAjoutee: false
-            });
+            };
 
+            achats.push(nouvelAchat);
             localStorage.setItem('achats', JSON.stringify(achats));
             actualiserDonnees();
             
@@ -947,7 +951,7 @@
             document.getElementById('achat-prix').value = '';
             document.getElementById('achat-quantite').value = 1;
             
-            showNotification('Achat enregistré avec succès', 'success');
+            showNotification(`Achat de ${quantite} ${article} enregistré avec succès`, 'success');
         }
 
         // Ajout des frais de livraison
@@ -987,7 +991,7 @@
             document.getElementById('achat-livraison').value = '';
             document.getElementById('livraison-quantite').value = 1;
             
-            showNotification('Frais de livraison appliqués avec succès', 'success');
+            showNotification(`Frais de livraison de ${frais.toFixed(2)}€ appliqués à ${article}`, 'success');
         }
 
         // Ajout de vente
@@ -1008,7 +1012,7 @@
                 return;
             }
 
-            ventes.push({
+            const nouvelleVente = {
                 id: nextId++,
                 article,
                 prix,
@@ -1016,8 +1020,9 @@
                 date,
                 type,
                 isRetour: false
-            });
+            };
 
+            ventes.push(nouvelleVente);
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserDonnees();
             
@@ -1025,7 +1030,7 @@
             document.getElementById('vente-prix').value = '';
             document.getElementById('vente-quantite').value = 1;
             
-            showNotification('Vente enregistrée avec succès', 'success');
+            showNotification(`Vente de ${quantite} ${article} enregistrée avec succès`, 'success');
         }
         
         // Enregistrer un retour
@@ -1061,7 +1066,7 @@
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserDonnees();
             
-            showNotification('Retour enregistré avec succès', 'success');
+            showNotification(`Retour de ${quantite} ${vente.article} enregistré`, 'success');
         }
 
         // Gestion des fournisseurs
@@ -1087,7 +1092,7 @@
             document.getElementById('fournisseur-nom').value = '';
             document.getElementById('fournisseur-contact').value = '';
             
-            showNotification('Fournisseur ajouté avec succès', 'success');
+            showNotification(`Fournisseur ${nom} ajouté avec succès`, 'success');
         }
         
         function supprimerFournisseur(id) {
@@ -1130,10 +1135,12 @@
         }
         
         function supprimerArticle(article) {
-            if (!confirm(`Supprimer TOUS les "${article}" ?\n(Achats ET ventes)`)) return;
+            if (!confirm(`Supprimer TOUS les achats et ventes de "${article}" ?`)) return;
             
+            // Supprimer seulement les achats et ventes pour cet article spécifique
             achats = achats.filter(a => a.article !== article);
             ventes = ventes.filter(v => v.article !== article);
+            
             localStorage.setItem('achats', JSON.stringify(achats));
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserDonnees();
@@ -1156,7 +1163,15 @@
             } else if (type === 'online') {
                 ventesFiltrees = ventes.filter(v => v.type === 'online');
             } else if (type === 'retour') {
-                ventesFiltrees = ventes.filter(v => v.isRetour);
+                ventesFiltrees = retours.map(r => {
+                    const vente = ventes.find(v => v.id === r.venteId);
+                    return {
+                        ...vente,
+                        isRetour: true,
+                        quantite: r.quantite,
+                        date: r.date
+                    };
+                });
             }
             
             ventesFiltrees.forEach(vente => {
@@ -1169,7 +1184,7 @@
                     <td>${vente.article}</td>
                     <td>${vente.prix.toFixed(2)}€</td>
                     <td class="${benefice >= 0 ? 'text-success' : 'text-danger'}">${benefice.toFixed(2)}€</td>
-                    <td>${vente.type === 'direct' ? 'Directe' : vente.type === 'online' ? 'En ligne' : 'Autre'}</td>
+                    <td>${vente.isRetour ? 'Retour' : vente.type === 'direct' ? 'Directe' : vente.type === 'online' ? 'En ligne' : 'Autre'}</td>
                     <td><button class="btn-sm btn-danger" onclick="supprimerElement('vente', ${vente.id})">×</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -1194,6 +1209,12 @@
                 }
             });
             
+            // Mise à jour du texte de stock disponible
+            if (selectVente.value) {
+                const stock = calculerStock(selectVente.value);
+                document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
+            }
+            
             // Sélecteur pour les frais de livraison
             const selectLivraison = document.getElementById('livraison-article');
             selectLivraison.innerHTML = '';
@@ -1217,7 +1238,7 @@
             // Sélecteur retours
             const selectRetour = document.getElementById('retour-vente');
             selectRetour.innerHTML = '';
-            ventes.filter(v => !v.isRetour).forEach(vente => {
+            ventes.filter(v => !v.isRetour && v.quantite > 0).forEach(vente => {
                 const option = document.createElement('option');
                 option.value = vente.id;
                 option.textContent = `${vente.date} - ${vente.article} (${vente.quantite})`;
@@ -1449,15 +1470,19 @@
                     return dateVente >= dateDebut && dateVente <= dateFin;
                 });
                 
+                const totalVentes = ventesPeriode.reduce((sum, v) => sum + v.quantite, 0);
+                const chiffreAffaires = ventesPeriode.reduce((sum, v) => sum + (v.prix * v.quantite), 0);
+                
                 rapport += `Total ventes: ${ventesPeriode.length}\n`;
-                rapport += `Articles vendus: ${ventesPeriode.reduce((sum, v) => sum + v.quantite, 0)}\n`;
-                rapport += `Chiffre d'affaires: ${ventesPeriode.reduce((sum, v) => sum + (v.prix * v.quantite), 0).toFixed(2)}€\n\n`;
+                rapport += `Articles vendus: ${totalVentes}\n`;
+                rapport += `Chiffre d'affaires: ${chiffreAffaires.toFixed(2)}€\n\n`;
                 
                 // Détail par article
                 const articlesVendus = [...new Set(ventesPeriode.map(v => v.article))];
                 articlesVendus.forEach(article => {
                     const ventesArticle = ventesPeriode.filter(v => v.article === article);
-                    rapport += `${article}: ${ventesArticle.reduce((sum, v) => sum + v.quantite, 0)} ventes\n`;
+                    const qte = ventesArticle.reduce((sum, v) => sum + v.quantite, 0);
+                    rapport += `${article}: ${qte} ventes (${ventesArticle.reduce((sum, v) => sum + (v.prix * v.quantite), 0).toFixed(2)}€)\n`;
                 });
             } else if (type === 'benefices') {
                 let beneficeTotal = 0;
@@ -1682,6 +1707,12 @@
                 const article = row.cells[0].textContent.toLowerCase();
                 row.style.display = article.includes(searchTerm) ? '' : 'none';
             });
+        });
+        
+        // Mise à jour du stock disponible quand on change d'article
+        document.getElementById('vente-article').addEventListener('change', function() {
+            const stock = calculerStock(this.value);
+            document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
         });
         
         // Notifications
