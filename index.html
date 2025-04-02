@@ -349,10 +349,9 @@
             bottom: 0;
             background: rgba(0,0,0,0.5);
             z-index: 1000;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
-            animation: fadeIn 0.2s ease-out;
         }
         
         .confirmation-content {
@@ -1167,12 +1166,12 @@
             
             if (isValid) {
                 document.getElementById('confirmation-message').textContent = message;
-                document.getElementById('confirmation-popup').classList.remove('hidden');
+                document.getElementById('confirmation-popup').style.display = 'flex';
             }
         }
         
         function confirmAction() {
-            document.getElementById('confirmation-popup').classList.add('hidden');
+            document.getElementById('confirmation-popup').style.display = 'none';
             
             switch(currentAction) {
                 case 'achat':
@@ -1198,7 +1197,7 @@
         }
         
         function cancelAction() {
-            document.getElementById('confirmation-popup').classList.add('hidden');
+            document.getElementById('confirmation-popup').style.display = 'none';
         }
         
         // Ajout d'achat
