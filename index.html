@@ -339,54 +339,6 @@
                 grid-template-columns: repeat(5, 1fr);
             }
         }
-        
-        /* Popup de confirmation */
-        .confirmation-popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        .confirmation-content {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-        
-        .confirmation-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .confirmation-buttons button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        
-        .confirm-btn {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .cancel-btn {
-            background: #E5E7EB;
-            color: var(--dark);
-        }
     </style>
 </head>
 <body>
@@ -506,7 +458,7 @@
                     <label class="form-label">Date</label>
                     <input type="date" class="form-input" id="achat-date">
                 </div>
-                <button class="btn" onclick="showConfirmation('achat')">Enregistrer l'achat</button>
+                <button class="btn" onclick="ajouterAchatDirect()">Enregistrer l'achat</button>
             </div>
             
             <div class="card">
@@ -525,7 +477,7 @@
                     <label class="form-label">Nombre d'articles dans le colis</label>
                     <input type="number" class="form-input" id="livraison-quantite" value="1" min="1">
                 </div>
-                <button class="btn" onclick="showConfirmation('livraison')">Appliquer les frais</button>
+                <button class="btn" onclick="ajouterLivraisonDirect()">Appliquer les frais</button>
             </div>
             
             <div class="card">
@@ -538,7 +490,7 @@
                     <label class="form-label">Contact</label>
                     <input type="text" class="form-input" id="fournisseur-contact" placeholder="Email ou téléphone">
                 </div>
-                <button class="btn" onclick="showConfirmation('fournisseur')">Ajouter fournisseur</button>
+                <button class="btn" onclick="ajouterFournisseurDirect()">Ajouter fournisseur</button>
                 
                 <table class="data-table" style="margin-top: 20px;">
                     <thead>
@@ -604,7 +556,7 @@
                         <option value="autre">Autre</option>
                     </select>
                 </div>
-                <button class="btn" onclick="showConfirmation('vente')">Enregistrer la vente</button>
+                <button class="btn" onclick="ajouterVenteDirect()">Enregistrer la vente</button>
             </div>
             
             <div class="card">
@@ -628,7 +580,7 @@
                         <option value="autre">Autre raison</option>
                     </select>
                 </div>
-                <button class="btn btn-warning" onclick="showConfirmation('retour')">Enregistrer le retour</button>
+                <button class="btn btn-warning" onclick="enregistrerRetourDirect()">Enregistrer le retour</button>
             </div>
             
             <div class="card">
@@ -802,16 +754,6 @@
     </div>
     
     <div id="notification" class="notification hidden"></div>
-    
-    <div id="confirmation-popup" class="confirmation-popup hidden">
-        <div class="confirmation-content">
-            <h3 id="confirmation-message"></h3>
-            <div class="confirmation-buttons">
-                <button class="confirm-btn" onclick="confirmAction()">Confirmer</button>
-                <button class="cancel-btn" onclick="cancelAction()">Annuler</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         // Stockage des données
@@ -834,10 +776,6 @@
         // Graphiques
         let dashboardChart;
         let categoriesChart;
-        
-        // Confirmation
-        let currentAction = '';
-        let actionData = {};
 
         // Navigation
         function showSection(section) {
@@ -1066,155 +1004,34 @@
             return articles.find(a => a.id === id);
         }
         
-        // Confirmation des actions
-        function showConfirmation(action) {
-            currentAction = action;
-            actionData = {};
+        // Fonctions directes sans confirmation
+        function ajouterAchatDirect() {
+            const articleId = parseInt(document.getElementById('achat-article').value);
+            const article = getArticleById(articleId);
+            const prix = parseFloat(document.getElementById('achat-prix').value);
+            const quantite = parseInt(document.getElementById('achat-quantite').value);
+            const date = document.getElementById('achat-date').value;
+            const categorie = document.getElementById('achat-categorie').value;
+            const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
+            const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
             
-            let message = '';
-            let isValid = true;
-            
-            switch(action) {
-                case 'achat':
-                    const articleId = parseInt(document.getElementById('achat-article').value);
-                    const article = getArticleById(articleId);
-                    const prix = parseFloat(document.getElementById('achat-prix').value);
-                    const quantite = parseInt(document.getElementById('achat-quantite').value);
-                    const date = document.getElementById('achat-date').value;
-                    const categorie = document.getElementById('achat-categorie').value;
-                    const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
-                    const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
-                    
-                    if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
-                        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                        isValid = false;
-                    } else {
-                        actionData = { 
-                            article: article.nom, 
-                            prix, 
-                            quantite, 
-                            date, 
-                            categorie, 
-                            fournisseur,
-                            articleId: article.id
-                        };
-                        message = `Confirmez-vous l'achat de ${quantite} ${article.nom} à ${prix.toFixed(2)}€ pièce ?`;
-                    }
-                    break;
-                    
-                case 'vente':
-                    const venteArticle = document.getElementById('vente-article').value;
-                    const ventePrix = parseFloat(document.getElementById('vente-prix').value);
-                    const venteQuantite = parseInt(document.getElementById('vente-quantite').value);
-                    const venteDate = document.getElementById('vente-date').value;
-                    const venteType = document.getElementById('vente-type').value;
-                    
-                    if (!venteArticle || isNaN(ventePrix) || isNaN(venteQuantite) || !venteDate) {
-                        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                        isValid = false;
-                    } else if (calculerStock(venteArticle) < venteQuantite) {
-                        showNotification(`Stock insuffisant! Il reste ${calculerStock(venteArticle)} ${venteArticle}(s)`, 'warning');
-                        isValid = false;
-                    } else {
-                        actionData = { article: venteArticle, prix: ventePrix, quantite: venteQuantite, date: venteDate, type: venteType };
-                        message = `Confirmez-vous la vente de ${venteQuantite} ${venteArticle} à ${ventePrix.toFixed(2)}€ pièce ?`;
-                    }
-                    break;
-                    
-                case 'livraison':
-                    const livraisonArticle = document.getElementById('livraison-article').value;
-                    const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
-                    const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
-                    
-                    if (!livraisonArticle || frais <= 0) {
-                        showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
-                        isValid = false;
-                    } else {
-                        actionData = { article: livraisonArticle, frais, quantiteColis };
-                        message = `Confirmez-vous l'ajout de ${frais.toFixed(2)}€ de frais pour ${livraisonArticle} ?`;
-                    }
-                    break;
-                    
-                case 'fournisseur':
-                    const nom = document.getElementById('fournisseur-nom').value.trim();
-                    const contact = document.getElementById('fournisseur-contact').value.trim();
-                    
-                    if (!nom || !contact) {
-                        showNotification('Veuillez remplir tous les champs', 'error');
-                        isValid = false;
-                    } else {
-                        actionData = { nom, contact };
-                        message = `Confirmez-vous l'ajout du fournisseur ${nom} ?`;
-                    }
-                    break;
-                    
-                case 'retour':
-                    const venteId = parseInt(document.getElementById('retour-vente').value);
-                    const retourQuantite = parseInt(document.getElementById('retour-quantite').value) || 1;
-                    const raison = document.getElementById('retour-raison').value;
-                    
-                    const vente = ventes.find(v => v.id === venteId);
-                    
-                    if (!vente || retourQuantite > vente.quantite) {
-                        showNotification('Quantité de retour invalide', 'error');
-                        isValid = false;
-                    } else {
-                        actionData = { venteId, quantite: retourQuantite, raison, article: vente.article };
-                        message = `Confirmez-vous le retour de ${retourQuantite} ${vente.article} pour raison "${raison}" ?`;
-                    }
-                    break;
+            if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
+                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                return;
             }
             
-            if (isValid) {
-                document.getElementById('confirmation-message').textContent = message;
-                document.getElementById('confirmation-popup').classList.remove('hidden');
-            }
-        }
-        
-        function confirmAction() {
-            document.getElementById('confirmation-popup').classList.add('hidden');
-            
-            switch(currentAction) {
-                case 'achat':
-                    ajouterAchat(actionData);
-                    break;
-                    
-                case 'vente':
-                    ajouterVente(actionData);
-                    break;
-                    
-                case 'livraison':
-                    ajouterLivraison(actionData);
-                    break;
-                    
-                case 'fournisseur':
-                    ajouterFournisseur(actionData);
-                    break;
-                    
-                case 'retour':
-                    enregistrerRetour(actionData);
-                    break;
-            }
-        }
-        
-        function cancelAction() {
-            document.getElementById('confirmation-popup').classList.add('hidden');
-        }
-        
-        // Ajout d'achat
-        function ajouterAchat(data) {
             const nouvelAchat = {
                 id: nextId++,
-                article: data.article,
-                articleId: data.articleId,
-                categorie: data.categorie,
-                fournisseur: data.fournisseur.nom,
-                fournisseurId: data.fournisseur.id,
-                prixInitial: data.prix,
-                prixReel: data.prix,
+                article: article.nom,
+                articleId: article.id,
+                categorie: categorie,
+                fournisseur: fournisseur.nom,
+                fournisseurId: fournisseur.id,
+                prixInitial: prix,
+                prixReel: prix,
                 fraisLivraison: 0,
-                quantite: data.quantite,
-                date: data.date,
+                quantite: quantite,
+                date: date,
                 livraisonAjoutee: false
             };
 
@@ -1226,14 +1043,22 @@
             document.getElementById('achat-prix').value = '';
             document.getElementById('achat-quantite').value = 1;
             
-            showNotification(`Achat de ${data.quantite} ${data.article} enregistré avec succès`, 'success');
+            showNotification(`Achat de ${quantite} ${article.nom} enregistré avec succès`, 'success');
         }
 
-        // Ajout des frais de livraison
-        function ajouterLivraison(data) {
+        function ajouterLivraisonDirect() {
+            const livraisonArticle = document.getElementById('livraison-article').value;
+            const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
+            const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
+            
+            if (!livraisonArticle || frais <= 0) {
+                showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
+                return;
+            }
+            
             // Trouve tous les achats de cet article sans frais de livraison
             const achatsCibles = achats.filter(a => 
-                a.article === data.article && !a.livraisonAjoutee
+                a.article === livraisonArticle && !a.livraisonAjoutee
             );
 
             if (achatsCibles.length === 0) {
@@ -1242,7 +1067,7 @@
             }
 
             // Calcule le prix réel avec frais de livraison répartis
-            const fraisParUnite = data.frais / data.quantiteColis;
+            const fraisParUnite = frais / quantiteColis;
             
             achatsCibles.forEach(achat => {
                 achat.prixReel = achat.prixInitial + fraisParUnite;
@@ -1257,18 +1082,31 @@
             document.getElementById('achat-livraison').value = '';
             document.getElementById('livraison-quantite').value = 1;
             
-            showNotification(`Frais de livraison de ${data.frais.toFixed(2)}€ appliqués à ${data.article}`, 'success');
+            showNotification(`Frais de livraison de ${frais.toFixed(2)}€ appliqués à ${livraisonArticle}`, 'success');
         }
 
-        // Ajout de vente
-        function ajouterVente(data) {
+        function ajouterVenteDirect() {
+            const venteArticle = document.getElementById('vente-article').value;
+            const ventePrix = parseFloat(document.getElementById('vente-prix').value);
+            const venteQuantite = parseInt(document.getElementById('vente-quantite').value);
+            const venteDate = document.getElementById('vente-date').value;
+            const venteType = document.getElementById('vente-type').value;
+            
+            if (!venteArticle || isNaN(ventePrix) || isNaN(venteQuantite) || !venteDate) {
+                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+                return;
+            } else if (calculerStock(venteArticle) < venteQuantite) {
+                showNotification(`Stock insuffisant! Il reste ${calculerStock(venteArticle)} ${venteArticle}(s)`, 'warning');
+                return;
+            }
+            
             const nouvelleVente = {
                 id: nextId++,
-                article: data.article,
-                prix: data.prix,
-                quantite: data.quantite,
-                date: data.date,
-                type: data.type,
+                article: venteArticle,
+                prix: ventePrix,
+                quantite: venteQuantite,
+                date: venteDate,
+                type: venteType,
                 isRetour: false
             };
 
@@ -1280,41 +1118,57 @@
             document.getElementById('vente-prix').value = '';
             document.getElementById('vente-quantite').value = 1;
             
-            showNotification(`Vente de ${data.quantite} ${data.article} enregistrée avec succès`, 'success');
+            showNotification(`Vente de ${venteQuantite} ${venteArticle} enregistrée avec succès`, 'success');
         }
         
-        // Enregistrer un retour
-        function enregistrerRetour(data) {
+        function enregistrerRetourDirect() {
+            const venteId = parseInt(document.getElementById('retour-vente').value);
+            const retourQuantite = parseInt(document.getElementById('retour-quantite').value) || 1;
+            const raison = document.getElementById('retour-raison').value;
+            
+            const vente = ventes.find(v => v.id === venteId);
+            
+            if (!vente || retourQuantite > vente.quantite) {
+                showNotification('Quantité de retour invalide', 'error');
+                return;
+            }
+            
             retours.push({
                 id: nextId++,
-                venteId: data.venteId,
-                article: data.article,
-                quantite: data.quantite,
+                venteId: venteId,
+                article: vente.article,
+                quantite: retourQuantite,
                 date: new Date().toISOString().split('T')[0],
-                raison: data.raison
+                raison: raison
             });
             
             localStorage.setItem('retours', JSON.stringify(retours));
             
             // Mettre à jour la quantité vendue
-            const vente = ventes.find(v => v.id === data.venteId);
-            vente.quantite -= data.quantite;
+            vente.quantite -= retourQuantite;
             if (vente.quantite <= 0) {
-                ventes = ventes.filter(v => v.id !== data.venteId);
+                ventes = ventes.filter(v => v.id !== venteId);
             }
             
             localStorage.setItem('ventes', JSON.stringify(ventes));
             actualiserDonnees();
             
-            showNotification(`Retour de ${data.quantite} ${data.article} enregistré`, 'success');
+            showNotification(`Retour de ${retourQuantite} ${vente.article} enregistré`, 'success');
         }
 
-        // Gestion des fournisseurs
-        function ajouterFournisseur(data) {
+        function ajouterFournisseurDirect() {
+            const nom = document.getElementById('fournisseur-nom').value.trim();
+            const contact = document.getElementById('fournisseur-contact').value.trim();
+            
+            if (!nom || !contact) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+            
             fournisseurs.push({
                 id: nextId++,
-                nom: data.nom,
-                contact: data.contact
+                nom: nom,
+                contact: contact
             });
             
             localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
@@ -1324,9 +1178,10 @@
             document.getElementById('fournisseur-nom').value = '';
             document.getElementById('fournisseur-contact').value = '';
             
-            showNotification(`Fournisseur ${data.nom} ajouté avec succès`, 'success');
+            showNotification(`Fournisseur ${nom} ajouté avec succès`, 'success');
         }
-        
+
+        // Gestion des fournisseurs
         function supprimerFournisseur(id) {
             if (!confirm("Supprimer ce fournisseur ? Les achats associés seront conservés mais sans fournisseur.")) return;
             
