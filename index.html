@@ -349,9 +349,10 @@
             bottom: 0;
             background: rgba(0,0,0,0.5);
             z-index: 1000;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.2s ease-out;
         }
         
         .confirmation-content {
@@ -1166,12 +1167,12 @@
             
             if (isValid) {
                 document.getElementById('confirmation-message').textContent = message;
-                document.getElementById('confirmation-popup').style.display = 'flex';
+                document.getElementById('confirmation-popup').classList.remove('hidden');
             }
         }
         
         function confirmAction() {
-            document.getElementById('confirmation-popup').style.display = 'none';
+            document.getElementById('confirmation-popup').classList.add('hidden');
             
             switch(currentAction) {
                 case 'achat':
@@ -1197,7 +1198,7 @@
         }
         
         function cancelAction() {
-            document.getElementById('confirmation-popup').style.display = 'none';
+            document.getElementById('confirmation-popup').classList.add('hidden');
         }
         
         // Ajout d'achat
@@ -1560,8 +1561,20 @@
             // Trier par rentabilité décroissante
             produits.sort((a, b) => b.rentabilite - a.rentabilite);
             
-            // Afficher les 5 premiers
-            produits.slice(0, 5).forEach(prod => {
+            // Afficher tous les produits (pas seulement 5) et s'assurer qu'il y a au moins un produit
+            if (produits.length === 0 && articles.length > 0) {
+                // Si aucun produit vendu mais des articles existent, afficher le premier article
+                const article = articles[0];
+                produits.push({
+                    article: article.nom,
+                    prixAchat: article.prixReference,
+                    prixVente: article.prixReference * 1.2, // Prix de vente par défaut (20% de marge)
+                    marge: article.prixReference * 0.2,
+                    rentabilite: 20
+                });
+            }
+            
+            produits.forEach(prod => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${prod.article}</td>
