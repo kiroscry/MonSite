@@ -1,1825 +1,1716 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>StockPro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #6366F1;
-            --danger: #EF4444;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --dark: #1F2937;
-            --light: #F9FAFB;
-        }
-        
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #F3F4F6;
-            color: var(--dark);
-            line-height: 1.5;
-        }
-        
-        .app-container {
-            max-width: 100%;
-            min-height: 100vh;
-            padding-bottom: 70px;
-        }
-        
-        .app-header {
-            background: white;
-            padding: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .app-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin: 0;
-        }
-        
-        .tab-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 100;
-        }
-        
-        .tab-item {
-            flex: 1;
-            text-align: center;
-            padding: 8px;
-            color: #9CA3AF;
-            font-size: 0.75rem;
-            text-decoration: none;
-        }
-        
-        .tab-item.active {
-            color: var(--primary);
-        }
-        
-        .tab-icon {
-            font-size: 1.25rem;
-            display: block;
-            margin-bottom: 4px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 16px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin: 5px 0;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-            color: #6B7280;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #4B5563;
-            font-size: 0.875rem;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 1rem;
-            background: #F9FAFB;
-            transition: all 0.2s;
-        }
-        
-        .form-input:focus {
-            border-color: var(--primary);
-            outline: none;
-            background: white;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 1rem;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        
-        .btn:hover {
-            background: #4F46E5;
-        }
-        
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.875rem;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
-            margin: 16px 0;
-        }
-        
-        .data-table th {
-            background: #F9FAFB;
-            color: #6B7280;
-            font-weight: 500;
-            text-align: left;
-            padding: 12px 16px;
-            border-bottom: 1px solid #E5E7EB;
-        }
-        
-        .data-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #E5E7EB;
-            vertical-align: middle;
-        }
-        
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .badge-success {
-            background: #ECFDF5;
-            color: var(--success);
-        }
-        
-        .badge-danger {
-            background: #FEF2F2;
-            color: var(--danger);
-        }
-        
-        .badge-warning {
-            background: #FFFBEB;
-            color: var(--warning);
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
-        .text-success {
-            color: var(--success);
-        }
-        
-        .text-danger {
-            color: var(--danger);
-        }
-        
-        .text-warning {
-            color: var(--warning);
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 250px;
-            width: 100%;
-            margin: 20px 0;
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 16px;
-        }
-        
-        .tab {
-            padding: 8px 16px;
-            cursor: pointer;
-            font-weight: 500;
-            color: #6B7280;
-            border-bottom: 2px solid transparent;
-        }
-        
-        .tab.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 20px;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .notification.success {
-            border-left: 4px solid var(--success);
-        }
-        
-        .notification.error {
-            border-left: 4px solid var(--danger);
-        }
-        
-        .notification-warning {
-            border-left: 4px solid var(--warning);
-        }
-        
-        @media (min-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-    </style>
+line-height: 1.5;
+}
+
+/* Layout Pro */
+.app-container {
+    max-width: 100%;
+    min-height: 100vh;
+    padding-bottom: 70px;
+}
+
+/* Header Style App */
+.app-header {
+    background: white;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0;
+}
+
+/* Navigation iOS-like */
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 100;
+}
+
+.tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    color: #9CA3AF;
+    font-size: 0.75rem;
+    text-decoration: none;
+}
+
+.tab-item.active {
+    color: var(--primary);
+}
+
+.tab-icon {
+    font-size: 1.25rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Cards Modernes */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 5px 0;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+/* Formulaires Pro */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4B5563;
+    font-size: 0.875rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #F9FAFB;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    border-color: var(--primary);
+    outline: none;
+    background: white;
+}
+
+/* Boutons */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: #4F46E5;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+
+.btn-warning {
+    background: var(--warning);
+}
+
+/* Tableaux */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin: 16px 0;
+}
+
+.data-table th {
+    background: #F9FAFB;
+    color: #6B7280;
+    font-weight: 500;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #E5E7EB;
+    vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: #ECFDF5;
+    color: var(--success);
+}
+
+.badge-danger {
+    background: #FEF2F2;
+    color: var(--danger);
+}
+
+.badge-warning {
+    background: #FFFBEB;
+    color: var(--warning);
+}
+
+/* Utilitaires */
+.text-right {
+    text-align: right;
+}
+
+.text-success {
+    color: var(--success);
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Graphiques */
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    margin: 20px 0;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 16px;
+}
+
+.tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6B7280;
+    border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.notification.success {
+    border-left: 4px solid var(--success);
+}
+
+.notification.error {
+    border-left: 4px solid var(--danger);
+}
+
+.notification-warning {
+    border-left: 4px solid var(--warning);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <h1 class="app-title">StockPro</h1>
-            <button class="btn-sm" onclick="openExportModal()">Exporter</button>
-        </header>
-        
-        <section id="dashboard-section" class="section">
-            <div class="stats-grid">
-                <div class="stat-card animate-in">
-                    <div class="stat-label">Aujourd'hui</div>
-                    <div class="stat-value" id="benef-jour">0€</div>
-                </div>
-                <div class="stat-card animate-in" style="animation-delay: 0.1s">
-                    <div class="stat-label">7 jours</div>
-                    <div class="stat-value" id="benef-semaine">0€</div>
-                </div>
-                <div class="stat-card animate-in" style="animation-delay: 0.2s">
-                    <div class="stat-label">Mois</div>
-                    <div class="stat-value" id="benef-mois">0€</div>
-                </div>
-                <div class="stat-card animate-in" style="animation-delay: 0.3s">
-                    <div class="stat-label">Marge</div>
-                    <div class="stat-value" id="marge-moyenne">0%</div>
-                </div>
-                <div class="stat-card animate-in" style="animation-delay: 0.4s">
-                    <div class="stat-label">Valeur Stock</div>
-                    <div class="stat-value" id="valeur-stock">0€</div>
-                </div>
-            </div>
-            
-            <div class="card animate-in" style="animation-delay: 0.5s">
-                <div class="tabs">
-                    <div class="tab active" onclick="changeChart('benefices')">Bénéfices</div>
-                    <div class="tab" onclick="changeChart('ventes')">Ventes</div>
-                    <div class="tab" onclick="changeChart('stocks')">Stocks</div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="dashboard-chart"></canvas>
-                </div>
-            </div>
-            
-            <div class="card animate-in" style="animation-delay: 0.6s">
-                <h2>Top Produits</h2>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Article</th>
-                            <th>Prix Achat</th>
-                            <th>Prix Vente</th>
-                            <th>Marge</th>
-                            <th>Rentabilité</th>
-                        </tr>
-                    </thead>
-                    <tbody id="top-products">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="card animate-in" style="animation-delay: 0.7s">
-                <h2>Dernières Ventes</h2>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Article</th>
-                            <th>Prix</th>
-                            <th>Bénéfice</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recent-sales">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
-        <section id="achats-section" class="section hidden">
-            <div class="card">
-                <h2>Nouvel Achat</h2>
-                <div class="form-group">
-                    <label class="form-label">Article</label>
-                    <select class="form-input" id="achat-article">
-                        <!-- Rempli par JS -->
-                    </select>
-                    <button class="btn-sm" style="margin-top: 5px;" onclick="openAddArticleModal()">+ Nouvel article</button>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Catégorie</label>
-                    <select class="form-input" id="achat-categorie">
-                        <option value="chaussures">Chaussures</option>
-                        <option value="pulls">Pulls</option>
-                        <option value="teeshirts">T-shirts</option>
-                        <option value="vestes">Vestes</option>
-                        <option value="shorts">Shorts</option>
-                        <option value="maillots">Maillots</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Fournisseur</label>
-                    <select class="form-input" id="achat-fournisseur">
-                        <!-- Rempli par JS -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Prix unitaire (€)</label>
-                    <input type="number" class="form-input" id="achat-prix" step="0.01" placeholder="20.00">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Quantité</label>
-                    <input type="number" class="form-input" id="achat-quantite" value="1" min="1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-input" id="achat-date">
-                </div>
-                <button class="btn" onclick="ajouterAchatDirect()">Enregistrer l'achat</button>
-            </div>
-            
-            <div class="card">
-                <h2>Ajouter des frais de livraison</h2>
-                <div class="form-group">
-                    <label class="form-label">Article</label>
-                    <select class="form-input" id="livraison-article">
-                        <!-- Rempli par JS -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Frais de livraison (€)</label>
-                    <input type="number" class="form-input" id="achat-livraison" step="0.01" placeholder="5.00">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nombre d'articles dans le colis</label>
-                    <input type="number" class="form-input" id="livraison-quantite" value="1" min="1">
-                </div>
-                <button class="btn" onclick="ajouterLivraisonDirect()">Appliquer les frais</button>
-            </div>
-            
-            <div class="card">
-                <h2>Gérer les fournisseurs</h2>
-                <div class="form-group">
-                    <label class="form-label">Nom du fournisseur</label>
-                    <input type="text" class="form-input" id="fournisseur-nom" placeholder="Nom du fournisseur">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Contact</label>
-                    <input type="text" class="form-input" id="fournisseur-contact" placeholder="Email ou téléphone">
-                </div>
-                <button class="btn" onclick="ajouterFournisseurDirect()">Ajouter fournisseur</button>
-                
-                <table class="data-table" style="margin-top: 20px;">
-                    <thead>
-                        <tr>
-                            <th>Fournisseur</th>
-                            <th>Contact</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fournisseurs-list">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>Historique des achats</h2>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Article</th>
-                            <th>Catégorie</th>
-                            <th>Fournisseur</th>
-                            <th>Prix</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="achats-list">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
-        <section id="ventes-section" class="section hidden">
-            <div class="card">
-                <h2>Nouvelle Vente</h2>
-                <div class="form-group">
-                    <label class="form-label">Article</label>
-                    <select class="form-input" id="vente-article">
-                        <!-- Rempli par JS -->
-                    </select>
-                    <small id="stock-disponible" style="color:var(--primary);"></small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Prix de vente (€)</label>
-                    <input type="number" class="form-input" id="vente-prix" step="0.01" placeholder="50.00">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Quantité</label>
-                    <input type="number" class="form-input" id="vente-quantite" value="1" min="1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-input" id="vente-date">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Type de vente</label>
-                    <select class="form-input" id="vente-type">
-                        <option value="direct">Vente directe</option>
-                        <option value="online">En ligne</option>
-                        <option value="autre">Autre</option>
-                    </select>
-                </div>
-                <button class="btn" onclick="ajouterVenteDirect()">Enregistrer la vente</button>
-            </div>
-            
-            <div class="card">
-                <h2>Retour client</h2>
-                <div class="form-group">
-                    <label class="form-label">Vente à retourner</label>
-                    <select class="form-input" id="retour-vente">
-                        <!-- Rempli par JS -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Quantité à retourner</label>
-                    <input type="number" class="form-input" id="retour-quantite" value="1" min="1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Raison</label>
-                    <select class="form-input" id="retour-raison">
-                        <option value="defaut">Produit défectueux</option>
-                        <option value="non-satisfait">Client non satisfait</option>
-                        <option value="erreur">Erreur de commande</option>
-                        <option value="autre">Autre raison</option>
-                    </select>
-                </div>
-                <button class="btn btn-warning" onclick="enregistrerRetourDirect()">Enregistrer le retour</button>
-            </div>
-            
-            <div class="card">
-                <h2>Historique des ventes</h2>
-                <div class="tabs">
-                    <div class="tab active" onclick="filterVentes('all')">Toutes</div>
-                    <div class="tab" onclick="filterVentes('direct')">Directes</div>
-                    <div class="tab" onclick="filterVentes('online')">En ligne</div>
-                    <div class="tab" onclick="filterVentes('retour')">Retours</div>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Article</th>
-                            <th>Prix</th>
-                            <th>Bénéfice</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ventes-list">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
-        <section id="stock-section" class="section hidden">
-            <div class="card">
-                <h2>Stock actuel</h2>
-                <div class="form-group">
-                    <input type="text" class="form-input" id="search-stock" placeholder="Rechercher un article...">
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Article</th>
-                            <th>Catégorie</th>
-                            <th>Quantité</th>
-                            <th>Prix unitaire</th>
-                            <th>Valeur</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stock-list">
-                        <!-- Rempli par JS -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>Statistiques par catégorie</h2>
-                <div class="chart-container">
-                    <canvas id="categories-chart"></canvas>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Inventaire</h2>
-                <button class="btn" onclick="genererInventaire()">Générer l'inventaire</button>
-                <div id="inventaire-result" style="margin-top: 20px;"></div>
-            </div>
-        </section>
-        
-        <section id="rapports-section" class="section hidden">
-            <div class="card">
-                <h2>Générer un rapport</h2>
-                <div class="form-group">
-                    <label class="form-label">Type de rapport</label>
-                    <select class="form-input" id="rapport-type">
-                        <option value="ventes">Ventes</option>
-                        <option value="benefices">Bénéfices</option>
-                        <option value="stocks">Stocks</option>
-                        <option value="fournisseurs">Fournisseurs</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Période</label>
-                    <select class="form-input" id="rapport-periode">
-                        <option value="7jours">7 derniers jours</option>
-                        <option value="mois">Ce mois</option>
-                        <option value="mois-prec">Mois précédent</option>
-                        <option value="annee">Cette année</option>
-                        <option value="custom">Personnalisée</option>
-                    </select>
-                </div>
-                <div id="custom-dates" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Date de début</label>
-                        <input type="date" class="form-input" id="rapport-date-debut">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Date de fin</label>
-                        <input type="date" class="form-input" id="rapport-date-fin">
-                    </div>
-                </div>
-                <button class="btn" onclick="genererRapport()">Générer le rapport</button>
-                <div id="rapport-result" style="margin-top: 20px;"></div>
-            </div>
-            
-            <div class="card">
-                <h2>Export de données</h2>
-                <button class="btn" onclick="exporterDonnees('csv')">Exporter en CSV</button>
-                <button class="btn" style="margin-top: 10px;" onclick="exporterDonnees('json')">Exporter en JSON</button>
-                <button class="btn" style="margin-top: 10px;" onclick="importerDonnees()">Importer des données</button>
-                <input type="file" id="file-import" style="display: none;" accept=".json,.csv">
-            </div>
-        </section>
-    </div>
-    
-    <nav class="tab-bar">
-        <a href="#" class="tab-item active" onclick="showSection('dashboard')">
-            <span class="tab-icon">📊</span>
-            <span>Dashboard</span>
-        </a>
-        <a href="#" class="tab-item" onclick="showSection('achats')">
-            <span class="tab-icon">🛒</span>
-            <span>Achats</span>
-        </a>
-        <a href="#" class="tab-item" onclick="showSection('ventes')">
-            <span class="tab-icon">💰</span>
-            <span>Ventes</span>
-        </a>
-        <a href="#" class="tab-item" onclick="showSection('stock')">
-            <span class="tab-icon">📦</span>
-            <span>Stock</span>
-        </a>
-        <a href="#" class="tab-item" onclick="showSection('rapports')">
-            <span class="tab-icon">📑</span>
-            <span>Rapports</span>
-        </a>
-    </nav>
-    
-    <!-- Modal pour ajouter un nouvel article -->
-    <div class="modal" id="add-article-modal">
-        <div class="modal-content">
-            <h2>Ajouter un nouvel article</h2>
-            <div class="form-group">
-                <label class="form-label">Nom de l'article</label>
-                <input type="text" class="form-input" id="new-article-name" placeholder="Nom de l'article">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Catégorie</label>
-                <select class="form-input" id="new-article-category">
-                    <option value="chaussures">Chaussures</option>
-                    <option value="pulls">Pulls</option>
-                    <option value="teeshirts">T-shirts</option>
-                    <option value="vestes">Vestes</option>
-                    <option value="shorts">Shorts</option>
-                    <option value="maillots">Maillots</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Prix de référence (€)</label>
-                <input type="number" class="form-input" id="new-article-price" step="0.01" placeholder="20.00">
-            </div>
-            <button class="btn" onclick="addNewArticle()">Ajouter l'article</button>
-            <button class="btn btn-danger" style="margin-top: 10px;" onclick="closeAddArticleModal()">Annuler</button>
+<div class="app-container">
+<!-- Header -->
+<header class="app-header">
+    <h1 class="app-title">StockPro</h1>
+    <button class="btn-sm" onclick="openExportModal()">Exporter</button>
+</header>
+
+<!-- Section Résumé -->
+<section id="dashboard-section" class="section">
+    <div class="stats-grid">
+        <div class="stat-card animate-in">
+            <div class="stat-label">Aujourd'hui</div>
+            <div class="stat-value" id="benef-jour">0€</div>
+        </div>
+        <div class="stat-card animate-in" style="animation-delay: 0.1s">
+            <div class="stat-label">7 jours</div>
+            <div class="stat-value" id="benef-semaine">0€</div>
+        </div>
+        <div class="stat-card animate-in" style="animation-delay: 0.2s">
+            <div class="stat-label">Mois</div>
+            <div class="stat-value" id="benef-mois">0€</div>
+        </div>
+        <div class="stat-card animate-in" style="animation-delay: 0.3s">
+            <div class="stat-label">Marge</div>
+            <div class="stat-value" id="marge-moyenne">0%</div>
+        </div>
+        <div class="stat-card animate-in" style="animation-delay: 0.4s">
+            <div class="stat-label">Valeur Stock</div>
+            <div class="stat-value" id="valeur-stock">0€</div>
         </div>
     </div>
     
-    <div class="modal" id="export-modal">
-        <div class="modal-content">
-            <h2>Exporter les données</h2>
-            <p>Sélectionnez le format d'export :</p>
-            <button class="btn" onclick="exporterDonnees('csv')">Exporter en CSV</button>
-            <button class="btn" style="margin-top: 10px;" onclick="exporterDonnees('json')">Exporter en JSON</button>
-            <button class="btn btn-danger" style="margin-top: 20px;" onclick="closeExportModal()">Annuler</button>
+    <div class="card animate-in" style="animation-delay: 0.5s">
+        <div class="tabs">
+            <div class="tab active" onclick="changeChart('benefices')">Bénéfices</div>
+            <div class="tab" onclick="changeChart('ventes')">Ventes</div>
+            <div class="tab" onclick="changeChart('stocks')">Stocks</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="dashboard-chart"></canvas>
         </div>
     </div>
     
-    <div id="notification" class="notification hidden"></div>
+    <div class="card animate-in" style="animation-delay: 0.6s">
+        <h2>Stock Critique</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Stock</th>
+                    <th>Fournisseur</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="low-stock-items">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card animate-in" style="animation-delay: 0.7s">
+        <h2>Top Produits</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Ventes</th>
+                    <th>Bénéfice</th>
+                    <th>Marge</th>
+                </tr>
+            </thead>
+            <tbody id="top-products">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+</section>
 
-    <script>
-        // Stockage des données
-        let achats = JSON.parse(localStorage.getItem('achats')) || [];
-        let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
-        let fournisseurs = JSON.parse(localStorage.getItem('fournisseurs')) || [
-            { id: 1, nom: "Fournisseur par défaut", contact: "contact@default.com" }
-        ];
-        let retours = JSON.parse(localStorage.getItem('retours')) || [];
-        let articles = JSON.parse(localStorage.getItem('articles')) || [];
-        let nextId = Math.max(
-            0, 
-            ...achats.map(a => a.id || 0), 
-            ...ventes.map(v => v.id || 0),
-            ...fournisseurs.map(f => f.id || 0),
-            ...retours.map(r => r.id || 0),
-            ...articles.map(a => a.id || 0)
-        ) + 1;
+<!-- Section Achats -->
+<section id="achats-section" class="section hidden">
+    <div class="card">
+        <h2>Nouvel Achat</h2>
+        <div class="form-group">
+            <label class="form-label">Article</label>
+            <input type="text" class="form-input" id="achat-article" placeholder="Nom de l'article">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Catégorie</label>
+            <select class="form-input" id="achat-categorie">
+                <option value="chaussures">Chaussures</option>
+                <option value="pulls">Pulls</option>
+                <option value="teeshirts">T-shirts</option>
+                <option value="vestes">Vestes</option>
+                <option value="shorts">Shorts</option>
+                <option value="maillots">Maillots</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Fournisseur</label>
+            <select class="form-input" id="achat-fournisseur">
+                <!-- Rempli par JS -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Prix unitaire (€)</label>
+            <input type="number" class="form-input" id="achat-prix" step="0.01" placeholder="20.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Quantité</label>
+            <input type="number" class="form-input" id="achat-quantite" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="achat-date">
+        </div>
+        <button class="btn" onclick="ajouterAchat()">Enregistrer l'achat</button>
+    </div>
+    
+    <div class="card">
+        <h2>Ajouter des frais de livraison</h2>
+        <div class="form-group">
+            <label class="form-label">Article</label>
+            <select class="form-input" id="livraison-article">
+                <!-- Rempli par JS -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Frais de livraison (€)</label>
+            <input type="number" class="form-input" id="achat-livraison" step="0.01" placeholder="5.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nombre d'articles dans le colis</label>
+            <input type="number" class="form-input" id="livraison-quantite" value="1" min="1">
+        </div>
+        <button class="btn" onclick="ajouterLivraison()">Appliquer les frais</button>
+    </div>
+    
+    <div class="card">
+        <h2>Gérer les fournisseurs</h2>
+        <div class="form-group">
+            <label class="form-label">Nom du fournisseur</label>
+            <input type="text" class="form-input" id="fournisseur-nom" placeholder="Nom du fournisseur">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Contact</label>
+            <input type="text" class="form-input" id="fournisseur-contact" placeholder="Email ou téléphone">
+        </div>
+        <button class="btn" onclick="ajouterFournisseur()">Ajouter fournisseur</button>
         
-        // Graphiques
-        let dashboardChart;
-        let categoriesChart;
+        <table class="data-table" style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>Fournisseur</th>
+                    <th>Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="fournisseurs-list">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card">
+        <h2>Historique des achats</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Article</th>
+                    <th>Catégorie</th>
+                    <th>Fournisseur</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="achats-list">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+</section>
 
-        // Navigation
-        function showSection(section) {
-            document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`${section}-section`).classList.remove('hidden');
-            document.querySelector(`.tab-item[onclick="showSection('${section}')"]`).classList.add('active');
-            
-            // Animation
-            document.querySelectorAll(`#${section}-section .card`).forEach((card, i) => {
-                card.style.animationDelay = `${i * 0.1}s`;
-                card.classList.add('animate-in');
-            });
-            
-            // Initialiser les graphiques si nécessaire
-            if (section === 'dashboard' && !dashboardChart) {
-                initDashboardChart();
-            }
-            if (section === 'stock' && !categoriesChart) {
-                initCategoriesChart();
+<!-- Section Ventes -->
+<section id="ventes-section" class="section hidden">
+    <div class="card">
+        <h2>Nouvelle Vente</h2>
+        <div class="form-group">
+            <label class="form-label">Article</label>
+            <select class="form-input" id="vente-article">
+                <!-- Rempli par JS -->
+            </select>
+            <small id="stock-disponible" style="color:var(--primary);"></small>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Prix de vente (€)</label>
+            <input type="number" class="form-input" id="vente-prix" step="0.01" placeholder="50.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Quantité</label>
+            <input type="number" class="form-input" id="vente-quantite" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="vente-date">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Type de vente</label>
+            <select class="form-input" id="vente-type">
+                <option value="direct">Vente directe</option>
+                <option value="online">En ligne</option>
+                <option value="autre">Autre</option>
+            </select>
+        </div>
+        <button class="btn" onclick="ajouterVente()">Enregistrer la vente</button>
+    </div>
+    
+    <div class="card">
+        <h2>Retour client</h2>
+        <div class="form-group">
+            <label class="form-label">Vente à retourner</label>
+            <select class="form-input" id="retour-vente">
+                <!-- Rempli par JS -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Quantité à retourner</label>
+            <input type="number" class="form-input" id="retour-quantite" value="1" min="1">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Raison</label>
+            <select class="form-input" id="retour-raison">
+                <option value="defaut">Produit défectueux</option>
+                <option value="non-satisfait">Client non satisfait</option>
+                <option value="erreur">Erreur de commande</option>
+                <option value="autre">Autre raison</option>
+            </select>
+        </div>
+        <button class="btn btn-warning" onclick="enregistrerRetour()">Enregistrer le retour</button>
+    </div>
+    
+    <div class="card">
+        <h2>Historique des ventes</h2>
+        <div class="tabs">
+            <div class="tab active" onclick="filterVentes('all')">Toutes</div>
+            <div class="tab" onclick="filterVentes('direct')">Directes</div>
+            <div class="tab" onclick="filterVentes('online')">En ligne</div>
+            <div class="tab" onclick="filterVentes('retour')">Retours</div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Article</th>
+                    <th>Prix</th>
+                    <th>Bénéfice</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ventes-list">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Section Stock -->
+<section id="stock-section" class="section hidden">
+    <div class="card">
+        <h2>Stock actuel</h2>
+        <div class="form-group">
+            <input type="text" class="form-input" id="search-stock" placeholder="Rechercher un article...">
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Catégorie</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Valeur</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="stock-list">
+                <!-- Rempli par JS -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card">
+        <h2>Statistiques par catégorie</h2>
+        <div class="chart-container">
+            <canvas id="categories-chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Inventaire</h2>
+        <button class="btn" onclick="genererInventaire()">Générer l'inventaire</button>
+        <div id="inventaire-result" style="margin-top: 20px;"></div>
+    </div>
+</section>
+
+<!-- Section Rapports -->
+<section id="rapports-section" class="section hidden">
+    <div class="card">
+        <h2>Générer un rapport</h2>
+        <div class="form-group">
+            <label class="form-label">Type de rapport</label>
+            <select class="form-input" id="rapport-type">
+                <option value="ventes">Ventes</option>
+                <option value="benefices">Bénéfices</option>
+                <option value="stocks">Stocks</option>
+                <option value="fournisseurs">Fournisseurs</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Période</label>
+            <select class="form-input" id="rapport-periode">
+                <option value="7jours">7 derniers jours</option>
+                <option value="mois">Ce mois</option>
+                <option value="mois-prec">Mois précédent</option>
+                <option value="annee">Cette année</option>
+                <option value="custom">Personnalisée</option>
+            </select>
+        </div>
+        <div id="custom-dates" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">Date de début</label>
+                <input type="date" class="form-input" id="rapport-date-debut">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date de fin</label>
+                <input type="date" class="form-input" id="rapport-date-fin">
+            </div>
+        </div>
+        <button class="btn" onclick="genererRapport()">Générer le rapport</button>
+        <div id="rapport-result" style="margin-top: 20px;"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Export de données</h2>
+        <button class="btn" onclick="exporterDonnees('csv')">Exporter en CSV</button>
+        <button class="btn" style="margin-top: 10px;" onclick="exporterDonnees('json')">Exporter en JSON</button>
+        <button class="btn" style="margin-top: 10px;" onclick="importerDonnees()">Importer des données</button>
+        <input type="file" id="file-import" style="display: none;" accept=".json,.csv">
+    </div>
+</section>
+</div>
+
+<!-- Tab Bar -->
+<nav class="tab-bar">
+<a href="#" class="tab-item active" onclick="showSection('dashboard')">
+    <span class="tab-icon">📊</span>
+    <span>Dashboard</span>
+</a>
+<a href="#" class="tab-item" onclick="showSection('achats')">
+    <span class="tab-icon">🛒</span>
+    <span>Achats</span>
+</a>
+<a href="#" class="tab-item" onclick="showSection('ventes')">
+    <span class="tab-icon">💰</span>
+    <span>Ventes</span>
+</a>
+<a href="#" class="tab-item" onclick="showSection('stock')">
+    <span class="tab-icon">📦</span>
+    <span>Stock</span>
+</a>
+<a href="#" class="tab-item" onclick="showSection('rapports')">
+    <span class="tab-icon">📑</span>
+    <span>Rapports</span>
+</a>
+</nav>
+
+<!-- Modal Export -->
+<div class="modal" id="export-modal">
+<div class="modal-content">
+    <h2>Exporter les données</h2>
+    <p>Sélectionnez le format d'export :</p>
+    <button class="btn" onclick="exporterDonnees('csv')">Exporter en CSV</button>
+    <button class="btn" style="margin-top: 10px;" onclick="exporterDonnees('json')">Exporter en JSON</button>
+    <button class="btn btn-danger" style="margin-top: 20px;" onclick="closeExportModal()">Annuler</button>
+</div>
+</div>
+
+<!-- Notification -->
+<div id="notification" class="notification hidden"></div>
+
+<script>
+// Stockage des données
+let achats = JSON.parse(localStorage.getItem('achats')) || [];
+let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
+let fournisseurs = JSON.parse(localStorage.getItem('fournisseurs')) || [
+    { id: 1, nom: "Fournisseur par défaut", contact: "contact@default.com" }
+];
+let retours = JSON.parse(localStorage.getItem('retours')) || [];
+let nextId = Math.max(
+    0, 
+    ...achats.map(a => a.id || 0), 
+    ...ventes.map(v => v.id || 0),
+    ...fournisseurs.map(f => f.id || 0),
+    ...retours.map(r => r.id || 0)
+) + 1;
+
+// Graphiques
+let dashboardChart;
+let categoriesChart;
+
+// Navigation
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(`${section}-section`).classList.remove('hidden');
+    document.querySelector(`.tab-item[onclick="showSection('${section}')"]`).classList.add('active');
+    
+    // Animation
+    document.querySelectorAll(`#${section}-section .card`).forEach((card, i) => {
+        card.style.animationDelay = `${i * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+    
+    // Initialiser les graphiques si nécessaire
+    if (section === 'dashboard' && !dashboardChart) {
+        initDashboardChart();
+    }
+    if (section === 'stock' && !categoriesChart) {
+        initCategoriesChart();
+    }
+}
+
+// Initialisation des graphiques
+function initDashboardChart() {
+    const ctx = document.getElementById('dashboard-chart').getContext('2d');
+    dashboardChart = new Chart(ctx, {
+        type: 'line', // Changé de 'bar' à 'line' pour avoir des courbes
+        data: getChartData('benefices'),
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
+    });
+}
 
-        // Initialisation des graphiques
-        function initDashboardChart() {
-            const ctx = document.getElementById('dashboard-chart').getContext('2d');
-            dashboardChart = new Chart(ctx, {
-                type: 'line',
-                data: getChartData('benefices'),
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
+function initCategoriesChart() {
+    const ctx = document.getElementById('categories-chart').getContext('2d');
+    categoriesChart = new Chart(ctx, {
+        type: 'pie',
+        data: getCategoriesData(),
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function changeChart(type) {
+    document.querySelectorAll('.tabs .tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    dashboardChart.data = getChartData(type);
+    dashboardChart.update();
+}
+
+function getChartData(type) {
+    const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const aujourdhui = new Date();
+    const dateDebut = new Date();
+    dateDebut.setDate(aujourdhui.getDate() - 6);
+    
+    const labels = [];
+    const data = [];
+    
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(dateDebut);
+        date.setDate(dateDebut.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        labels.push(jours[date.getDay()]);
+        
+        let valeur = 0;
+        
+        if (type === 'benefices') {
+            ventes.forEach(vente => {
+                if (vente.date === dateStr) {
+                    const achat = achats.find(a => a.article === vente.article);
+                    if (achat) {
+                        valeur += (vente.prix - achat.prixReel) * vente.quantite;
                     }
                 }
             });
+        } else if (type === 'ventes') {
+            valeur = ventes.filter(v => v.date === dateStr)
+                          .reduce((sum, v) => sum + v.quantite, 0);
+        } else if (type === 'stocks') {
+            const articlesUniques = [...new Set(achats.map(a => a.article))];
+            valeur = articlesUniques.reduce((sum, article) => sum + calculerStock(article), 0);
         }
         
-        function initCategoriesChart() {
-            const ctx = document.getElementById('categories-chart').getContext('2d');
-            categoriesChart = new Chart(ctx, {
-                type: 'pie',
-                data: getCategoriesData(),
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
+        data.push(valeur);
+    }
+    
+    return {
+        labels: labels,
+        datasets: [{
+            label: type === 'benefices' ? 'Bénéfices (€)' : 
+                   type === 'ventes' ? 'Nombre de ventes' : 'Quantité en stock',
+            data: data,
+            backgroundColor: type === 'benefices' ? 'rgba(99, 102, 241, 0.2)' :
+                           type === 'ventes' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+            borderColor: type === 'benefices' ? 'rgba(99, 102, 241, 1)' :
+                         type === 'ventes' ? 'rgba(16, 185, 129, 1)' : 'rgba(245, 158, 11, 1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4 // Pour des courbes plus lisses
+        }]
+    };
+}
+
+function getCategoriesData() {
+    const categories = {};
+    
+    achats.forEach(achat => {
+        const cat = achat.categorie || 'autre';
+        const stock = calculerStock(achat.article);
+        
+        if (stock > 0) {
+            if (!categories[cat]) {
+                categories[cat] = 0;
+            }
+            categories[cat] += stock * (achat.prixReel || achat.prixInitial);
+        }
+    });
+    
+    return {
+        labels: Object.keys(categories),
+        datasets: [{
+            data: Object.values(categories),
+            backgroundColor: [
+                'rgba(99, 102, 241, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(156, 163, 175, 0.7)'
+            ],
+            borderWidth: 1
+        }]
+    };
+}
+
+// Ajout d'achat
+function ajouterAchat() {
+    const article = document.getElementById('achat-article').value.trim();
+    const categorie = document.getElementById('achat-categorie').value;
+    const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
+    const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
+    const prix = parseFloat(document.getElementById('achat-prix').value);
+    const quantite = parseInt(document.getElementById('achat-quantite').value);
+    const date = document.getElementById('achat-date').value;
+
+    if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
+        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+        return;
+    }
+
+    const nouvelAchat = {
+        id: nextId++,
+        article,
+        categorie,
+        fournisseur: fournisseur.nom,
+        fournisseurId: fournisseur.id,
+        prixInitial: prix,
+        prixReel: prix,
+        fraisLivraison: 0,
+        quantite,
+        date,
+        livraisonAjoutee: false
+    };
+
+    achats.push(nouvelAchat);
+    localStorage.setItem('achats', JSON.stringify(achats));
+    actualiserDonnees();
+    
+    // Réinitialisation du formulaire
+    document.getElementById('achat-article').value = '';
+    document.getElementById('achat-prix').value = '';
+    document.getElementById('achat-quantite').value = 1;
+    
+    showNotification(`Achat de ${quantite} ${article} enregistré avec succès`, 'success');
+}
+
+// Ajout des frais de livraison
+function ajouterLivraison() {
+    const article = document.getElementById('livraison-article').value;
+    const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
+    const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
+
+    if (!article || frais <= 0) {
+        showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
+        return;
+    }
+
+    // Trouve tous les achats de cet article sans frais de livraison
+    const achatsCibles = achats.filter(a => 
+        a.article === article && !a.livraisonAjoutee
+    );
+
+    if (achatsCibles.length === 0) {
+        showNotification('Aucun achat trouvé pour cet article ou frais déjà appliqués', 'warning');
+        return;
+    }
+
+    // Calcule le prix réel avec frais de livraison répartis
+    const fraisParUnite = frais / quantiteColis;
+    
+    achatsCibles.forEach(achat => {
+        achat.prixReel = achat.prixInitial + fraisParUnite;
+        achat.fraisLivraison = fraisParUnite;
+        achat.livraisonAjoutee = true;
+    });
+
+    localStorage.setItem('achats', JSON.stringify(achats));
+    actualiserDonnees();
+    
+    // Réinitialisation du formulaire
+    document.getElementById('achat-livraison').value = '';
+    document.getElementById('livraison-quantite').value = 1;
+    
+    showNotification(`Frais de livraison de ${frais.toFixed(2)}€ appliqués à ${article}`, 'success');
+}
+
+// Ajout de vente
+function ajouterVente() {
+    const article = document.getElementById('vente-article').value;
+    const prix = parseFloat(document.getElementById('vente-prix').value);
+    const quantite = parseInt(document.getElementById('vente-quantite').value);
+    const date = document.getElementById('vente-date').value;
+    const type = document.getElementById('vente-type').value;
+
+    if (!article || isNaN(prix) || isNaN(quantite) || !date) {
+        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+        return;
+    }
+
+    if (calculerStock(article) < quantite) {
+        showNotification(`Stock insuffisant! Il reste ${calculerStock(article)} ${article}(s)`, 'warning');
+        return;
+    }
+
+    const nouvelleVente = {
+        id: nextId++,
+        article,
+        prix,
+        quantite,
+        date,
+        type,
+        isRetour: false
+    };
+
+    ventes.push(nouvelleVente);
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    actualiserDonnees();
+    
+    // Réinitialisation du formulaire
+    document.getElementById('vente-prix').value = '';
+    document.getElementById('vente-quantite').value = 1;
+    
+    showNotification(`Vente de ${quantite} ${article} enregistrée avec succès`, 'success');
+}
+
+// Enregistrer un retour
+function enregistrerRetour() {
+    const venteId = parseInt(document.getElementById('retour-vente').value);
+    const quantite = parseInt(document.getElementById('retour-quantite').value) || 1;
+    const raison = document.getElementById('retour-raison').value;
+    
+    const vente = ventes.find(v => v.id === venteId);
+    
+    if (!vente || quantite > vente.quantite) {
+        showNotification('Quantité de retour invalide', 'error');
+        return;
+    }
+    
+    retours.push({
+        id: nextId++,
+        venteId,
+        article: vente.article,
+        quantite,
+        date: new Date().toISOString().split('T')[0],
+        raison
+    });
+    
+    localStorage.setItem('retours', JSON.stringify(retours));
+    
+    // Mettre à jour la quantité vendue
+    vente.quantite -= quantite;
+    if (vente.quantite <= 0) {
+        ventes = ventes.filter(v => v.id !== venteId);
+    }
+    
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    actualiserDonnees();
+    
+    showNotification(`Retour de ${quantite} ${vente.article} enregistré`, 'success');
+}
+
+// Gestion des fournisseurs
+function ajouterFournisseur() {
+    const nom = document.getElementById('fournisseur-nom').value.trim();
+    const contact = document.getElementById('fournisseur-contact').value.trim();
+    
+    if (!nom || !contact) {
+        showNotification('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    fournisseurs.push({
+        id: nextId++,
+        nom,
+        contact
+    });
+    
+    localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
+    actualiserDonnees();
+    
+    // Réinitialisation du formulaire
+    document.getElementById('fournisseur-nom').value = '';
+    document.getElementById('fournisseur-contact').value = '';
+    
+    showNotification(`Fournisseur ${nom} ajouté avec succès`, 'success');
+}
+
+function supprimerFournisseur(id) {
+    if (!confirm("Supprimer ce fournisseur ? Les achats associés seront conservés mais sans fournisseur.")) return;
+    
+    fournisseurs = fournisseurs.filter(f => f.id !== id);
+    localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
+    actualiserDonnees();
+    
+    showNotification('Fournisseur supprimé', 'success');
+}
+
+// Calcul du stock
+function calculerStock(article) {
+    const totalAchats = achats
+        .filter(a => a.article === article)
+        .reduce((sum, a) => sum + a.quantite, 0);
+        
+    const totalVentes = ventes
+        .filter(v => v.article === article && !v.isRetour)
+        .reduce((sum, v) => sum + v.quantite, 0);
+        
+    return totalAchats - totalVentes;
+}
+
+// Suppression d'éléments
+function supprimerElement(type, id) {
+    if (!confirm("Supprimer définitivement cet élément ?")) return;
+    
+    if (type === 'achat') {
+        achats = achats.filter(a => a.id !== id);
+        localStorage.setItem('achats', JSON.stringify(achats));
+    } else if (type === 'vente') {
+        ventes = ventes.filter(v => v.id !== id);
+        localStorage.setItem('ventes', JSON.stringify(ventes));
+    }
+    
+    actualiserDonnees();
+    showNotification('Élément supprimé', 'success');
+}
+
+function supprimerArticle(article) {
+    if (!confirm(`Supprimer TOUS les achats et ventes de "${article}" ?`)) return;
+    
+    // Supprimer seulement les achats et ventes pour cet article spécifique
+    achats = achats.filter(a => a.article !== article);
+    ventes = ventes.filter(v => v.article !== article);
+    
+    localStorage.setItem('achats', JSON.stringify(achats));
+    localStorage.setItem('ventes', JSON.stringify(ventes));
+    actualiserDonnees();
+    
+    showNotification(`Tous les ${article} ont été supprimés`, 'success');
+}
+
+// Filtrage des ventes
+function filterVentes(type) {
+    document.querySelectorAll('#ventes-section .tabs .tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const tbody = document.getElementById('ventes-list');
+    tbody.innerHTML = '';
+    
+    let ventesFiltrees = [...ventes];
+    
+    if (type === 'direct') {
+        ventesFiltrees = ventes.filter(v => v.type === 'direct');
+    } else if (type === 'online') {
+        ventesFiltrees = ventes.filter(v => v.type === 'online');
+    } else if (type === 'retour') {
+        ventesFiltrees = retours.map(r => {
+            const vente = ventes.find(v => v.id === r.venteId);
+            return {
+                ...vente,
+                isRetour: true,
+                quantite: r.quantite,
+                date: r.date
+            };
+        });
+    }
+    
+    ventesFiltrees.forEach(vente => {
+        const achat = achats.find(a => a.article === vente.article);
+        const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${vente.date}</td>
+            <td>${vente.article}</td>
+            <td>${vente.prix.toFixed(2)}€</td>
+            <td class="${benefice >= 0 ? 'text-success' : 'text-danger'}">${benefice.toFixed(2)}€</td>
+            <td>${vente.isRetour ? 'Retour' : vente.type === 'direct' ? 'Directe' : vente.type === 'online' ? 'En ligne' : 'Autre'}</td>
+            <td><button class="btn-sm btn-danger" onclick="supprimerElement('vente', ${vente.id})">×</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Actualisation de l'interface
+function actualiserDonnees() {
+    // Remplir les sélecteurs
+    const articlesUniques = [...new Set(achats.map(a => a.article))];
+    
+    // Sélecteur pour les ventes
+    const selectVente = document.getElementById('vente-article');
+    selectVente.innerHTML = '';
+    articlesUniques.forEach(article => {
+        const stock = calculerStock(article);
+        if (stock > 0) {
+            const option = document.createElement('option');
+            option.value = article;
+            option.textContent = `${article} (${stock} dispo)`;
+            selectVente.appendChild(option);
+        }
+    });
+    
+    // Mise à jour du texte de stock disponible
+    if (selectVente.value) {
+        const stock = calculerStock(selectVente.value);
+        document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
+    }
+    
+    // Sélecteur pour les frais de livraison
+    const selectLivraison = document.getElementById('livraison-article');
+    selectLivraison.innerHTML = '';
+    articlesUniques.forEach(article => {
+        const option = document.createElement('option');
+        option.value = article;
+        option.textContent = article;
+        selectLivraison.appendChild(option);
+    });
+    
+    // Sélecteur fournisseurs
+    const selectFournisseur = document.getElementById('achat-fournisseur');
+    selectFournisseur.innerHTML = '';
+    fournisseurs.forEach(fournisseur => {
+        const option = document.createElement('option');
+        option.value = fournisseur.id;
+        option.textContent = fournisseur.nom;
+        selectFournisseur.appendChild(option);
+    });
+    
+    // Sélecteur retours
+    const selectRetour = document.getElementById('retour-vente');
+    selectRetour.innerHTML = '';
+    ventes.filter(v => !v.isRetour && v.quantite > 0).forEach(vente => {
+        const option = document.createElement('option');
+        option.value = vente.id;
+        option.textContent = `${vente.date} - ${vente.article} (${vente.quantite})`;
+        selectRetour.appendChild(option);
+    });
+    
+    // Stock actuel
+    const tbodyStock = document.getElementById('stock-list');
+    tbodyStock.innerHTML = '';
+    
+    let valeurTotaleStock = 0;
+    const articlesAvecStock = articlesUniques.filter(article => calculerStock(article) > 0);
+    
+    articlesAvecStock.forEach(article => {
+        const stock = calculerStock(article);
+        const achat = achats.find(a => a.article === article);
+        const valeur = stock * achat.prixReel;
+        valeurTotaleStock += valeur;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${article}</td>
+            <td>${achat.categorie || 'autre'}</td>
+            <td>${stock}</td>
+            <td>${achat.prixReel.toFixed(2)}€</td>
+            <td>${valeur.toFixed(2)}€</td>
+            <td><button class="btn-sm btn-danger" onclick="supprimerArticle('${article}')">Supprimer</button></td>
+        `;
+        tbodyStock.appendChild(tr);
+    });
+    
+    document.getElementById('valeur-stock').textContent = valeurTotaleStock.toFixed(2) + '€';
+    
+    // Fournisseurs
+    const tbodyFournisseurs = document.getElementById('fournisseurs-list');
+    tbodyFournisseurs.innerHTML = '';
+    fournisseurs.forEach(fournisseur => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${fournisseur.nom}</td>
+            <td>${fournisseur.contact}</td>
+            <td><button class="btn-sm btn-danger" onclick="supprimerFournisseur(${fournisseur.id})">×</button></td>
+        `;
+        tbodyFournisseurs.appendChild(tr);
+    });
+    
+    // Historique achats
+    const tbodyAchats = document.getElementById('achats-list');
+    tbodyAchats.innerHTML = '';
+    achats.forEach(achat => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${achat.date}</td>
+            <td>${achat.article}</td>
+            <td>${achat.categorie || 'autre'}</td>
+            <td>${achat.fournisseur || 'N/A'}</td>
+            <td>${achat.prixReel.toFixed(2)}€</td>
+            <td><button class="btn-sm btn-danger" onclick="supprimerElement('achat', ${achat.id})">×</button></td>
+        `;
+        tbodyAchats.appendChild(tr);
+    });
+    
+    // Historique ventes
+    filterVentes('all');
+    
+    // Mise à jour des stats
+    updateStats();
+    
+    // Mise à jour des graphiques
+    if (dashboardChart) {
+        dashboardChart.data = getChartData('benefices');
+        dashboardChart.update();
+    }
+    
+    if (categoriesChart) {
+        categoriesChart.data = getCategoriesData();
+        categoriesChart.update();
+    }
+}
+
+function updateStats() {
+    const aujourdhui = new Date().toISOString().split('T')[0];
+    const date7Jours = new Date();
+    date7Jours.setDate(date7Jours.getDate() - 7);
+    
+    let benefJour = 0;
+    let benefSemaine = 0;
+    let benefMois = 0;
+    let totalVentes = 0;
+    let totalCout = 0;
+    
+    ventes.forEach(vente => {
+        const achat = achats.find(a => a.article === vente.article);
+        const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
+        const cout = achat ? achat.prixReel * vente.quantite : 0;
+        
+        if (vente.date === aujourdhui) benefJour += benefice;
+        if (new Date(vente.date) >= date7Jours) benefSemaine += benefice;
+        if (new Date(vente.date).getMonth() === new Date().getMonth()) {
+            benefMois += benefice;
+            totalVentes += vente.prix * vente.quantite;
+            totalCout += cout;
+        }
+    });
+    
+    // Calcul de la marge moyenne
+    const margeMoyenne = totalCout > 0 ? ((totalVentes - totalCout) / totalVentes) * 100 : 0;
+    
+    document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
+    document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
+    document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
+    document.getElementById('marge-moyenne').textContent = margeMoyenne.toFixed(1) + '%';
+    
+    // Stock critique
+    const lowStockItems = document.getElementById('low-stock-items');
+    lowStockItems.innerHTML = '';
+    
+    const articlesUniques = [...new Set(achats.map(a => a.article))];
+    articlesUniques.forEach(article => {
+        const stock = calculerStock(article);
+        if (stock < 3) { // Seuil de stock critique
+            const achat = achats.find(a => a.article === article);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${article}</td>
+                <td><span class="badge ${stock === 0 ? 'badge-danger' : 'badge-warning'}">${stock}</span></td>
+                <td>${achat?.fournisseur || 'N/A'}</td>
+                <td class="text-right"><button class="btn-sm" onclick="showSection('achats')">Commander</button></td>
+            `;
+            lowStockItems.appendChild(tr);
+        }
+    });
+    
+    // Top produits
+    const topProducts = document.getElementById('top-products');
+    topProducts.innerHTML = '';
+    
+    const produits = [];
+    articlesUniques.forEach(article => {
+        const ventesArticle = ventes.filter(v => v.article === article);
+        const quantiteVendue = ventesArticle.reduce((sum, v) => sum + v.quantite, 0);
+        const achat = achats.find(a => a.article === article);
+        
+        if (quantiteVendue > 0 && achat) {
+            const benefice = ventesArticle.reduce((sum, v) => {
+                return sum + (v.prix - achat.prixReel) * v.quantite;
+            }, 0);
+            
+            produits.push({
+                article,
+                quantiteVendue,
+                benefice,
+                marge: benefice / (achat.prixReel * quantiteVendue) * 100
             });
         }
-        
-        function changeChart(type) {
-            document.querySelectorAll('.tabs .tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            dashboardChart.data = getChartData(type);
-            dashboardChart.update();
+    });
+    
+    // Trier par bénéfice décroissant
+    produits.sort((a, b) => b.benefice - a.benefice);
+    
+    // Afficher les 5 premiers
+    produits.slice(0, 5).forEach(prod => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${prod.article}</td>
+            <td>${prod.quantiteVendue}</td>
+            <td class="${prod.benefice >= 0 ? 'text-success' : 'text-danger'}">${prod.benefice.toFixed(2)}€</td>
+            <td class="${prod.marge >= 0 ? 'text-success' : 'text-danger'}">${prod.marge.toFixed(1)}%</td>
+        `;
+        topProducts.appendChild(tr);
+    });
+}
+
+// Génération d'inventaire
+function genererInventaire() {
+    const articlesUniques = [...new Set(achats.map(a => a.article))];
+    let inventaire = "=== INVENTAIRE ===\n";
+    inventaire += `Date: ${new Date().toLocaleDateString()}\n\n`;
+    
+    articlesUniques.forEach(article => {
+        const stock = calculerStock(article);
+        if (stock > 0) {
+            const achat = achats.find(a => a.article === article);
+            inventaire += `${article}: ${stock} unités (${(stock * achat.prixReel).toFixed(2)}€)\n`;
         }
-        
-        function getChartData(type) {
-            const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-            const aujourdhui = new Date();
-            const dateDebut = new Date();
+    });
+    
+    document.getElementById('inventaire-result').textContent = inventaire;
+}
+
+// Gestion des rapports
+function genererRapport() {
+    const type = document.getElementById('rapport-type').value;
+    const periode = document.getElementById('rapport-periode').value;
+    
+    let dateDebut, dateFin;
+    const aujourdhui = new Date();
+    
+    switch (periode) {
+        case '7jours':
+            dateDebut = new Date(aujourdhui);
             dateDebut.setDate(aujourdhui.getDate() - 6);
-            
-            const labels = [];
-            const data = [];
-            
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(dateDebut);
-                date.setDate(dateDebut.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
-                labels.push(jours[date.getDay()]);
-                
-                let valeur = 0;
-                
-                if (type === 'benefices') {
-                    ventes.forEach(vente => {
-                        if (vente.date === dateStr) {
-                            const achat = achats.find(a => a.article === vente.article);
-                            if (achat) {
-                                valeur += (vente.prix - achat.prixReel) * vente.quantite;
-                            }
-                        }
-                    });
-                } else if (type === 'ventes') {
-                    valeur = ventes.filter(v => v.date === dateStr)
-                                  .reduce((sum, v) => sum + v.quantite, 0);
-                } else if (type === 'stocks') {
-                    const articlesUniques = [...new Set(achats.map(a => a.article))];
-                    valeur = articlesUniques.reduce((sum, article) => sum + calculerStock(article), 0);
-                }
-                
-                data.push(valeur);
-            }
-            
-            return {
-                labels: labels,
-                datasets: [{
-                    label: type === 'benefices' ? 'Bénéfices (€)' : 
-                           type === 'ventes' ? 'Nombre de ventes' : 'Quantité en stock',
-                    data: data,
-                    backgroundColor: type === 'benefices' ? 'rgba(99, 102, 241, 0.2)' :
-                                   type === 'ventes' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                    borderColor: type === 'benefices' ? 'rgba(99, 102, 241, 1)' :
-                                 type === 'ventes' ? 'rgba(16, 185, 129, 1)' : 'rgba(245, 158, 11, 1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            };
-        }
+            dateFin = aujourdhui;
+            break;
+        case 'mois':
+            dateDebut = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), 1);
+            dateFin = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() + 1, 0);
+            break;
+        case 'mois-prec':
+            dateDebut = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() - 1, 1);
+            dateFin = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), 0);
+            break;
+        case 'annee':
+            dateDebut = new Date(aujourdhui.getFullYear(), 0, 1);
+            dateFin = new Date(aujourdhui.getFullYear(), 11, 31);
+            break;
+        case 'custom':
+            dateDebut = new Date(document.getElementById('rapport-date-debut').value);
+            dateFin = new Date(document.getElementById('rapport-date-fin').value);
+            break;
+    }
+    
+    let rapport = `=== RAPPORT ${type.toUpperCase()} ===\n`;
+    rapport += `Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}\n\n`;
+    
+    if (type === 'ventes') {
+        const ventesPeriode = ventes.filter(v => {
+            const dateVente = new Date(v.date);
+            return dateVente >= dateDebut && dateVente <= dateFin;
+        });
         
-        function getCategoriesData() {
-            const categories = {};
-            
-            achats.forEach(achat => {
-                const cat = achat.categorie || 'autre';
-                const stock = calculerStock(achat.article);
-                
-                if (stock > 0) {
-                    if (!categories[cat]) {
-                        categories[cat] = 0;
-                    }
-                    categories[cat] += stock * (achat.prixReel || achat.prixInitial);
-                }
-            });
-            
-            return {
-                labels: Object.keys(categories),
-                datasets: [{
-                    data: Object.values(categories),
-                    backgroundColor: [
-                        'rgba(99, 102, 241, 0.7)',
-                        'rgba(16, 185, 129, 0.7)',
-                        'rgba(245, 158, 11, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(156, 163, 175, 0.7)'
-                    ],
-                    borderWidth: 1
-                }]
-            };
-        }
+        const totalVentes = ventesPeriode.reduce((sum, v) => sum + v.quantite, 0);
+        const chiffreAffaires = ventesPeriode.reduce((sum, v) => sum + (v.prix * v.quantite), 0);
         
-        // Gestion des articles
-        function openAddArticleModal() {
-            document.getElementById('add-article-modal').style.display = 'flex';
-        }
+        rapport += `Total ventes: ${ventesPeriode.length}\n`;
+        rapport += `Articles vendus: ${totalVentes}\n`;
+        rapport += `Chiffre d'affaires: ${chiffreAffaires.toFixed(2)}€\n\n`;
         
-        function closeAddArticleModal() {
-            document.getElementById('add-article-modal').style.display = 'none';
-        }
+        // Détail par article
+        const articlesVendus = [...new Set(ventesPeriode.map(v => v.article))];
+        articlesVendus.forEach(article => {
+            const ventesArticle = ventesPeriode.filter(v => v.article === article);
+            const qte = ventesArticle.reduce((sum, v) => sum + v.quantite, 0);
+            rapport += `${article}: ${qte} ventes (${ventesArticle.reduce((sum, v) => sum + (v.prix * v.quantite), 0).toFixed(2)}€)\n`;
+        });
+    } else if (type === 'benefices') {
+        let beneficeTotal = 0;
+        const articlesVendus = {};
         
-        function addNewArticle() {
-            const nom = document.getElementById('new-article-name').value.trim();
-            const categorie = document.getElementById('new-article-category').value;
-            const prix = parseFloat(document.getElementById('new-article-price').value);
-            
-            if (!nom || isNaN(prix)) {
-                showNotification('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-            
-            const nouvelArticle = {
-                id: nextId++,
-                nom,
-                categorie,
-                prixReference: prix
-            };
-            
-            articles.push(nouvelArticle);
-            localStorage.setItem('articles', JSON.stringify(articles));
-            
-            // Mettre à jour les sélecteurs
-            updateArticleSelects();
-            
-            // Sélectionner le nouvel article
-            document.getElementById('achat-article').value = nouvelArticle.id;
-            
-            closeAddArticleModal();
-            showNotification('Article ajouté avec succès', 'success');
-        }
-        
-        function updateArticleSelects() {
-            // Sélecteur pour les achats
-            const selectAchat = document.getElementById('achat-article');
-            selectAchat.innerHTML = '';
-            
-            articles.forEach(article => {
-                const option = document.createElement('option');
-                option.value = article.id;
-                option.textContent = `${article.nom} (${article.categorie})`;
-                selectAchat.appendChild(option);
-            });
-            
-            // Sélecteur pour les ventes
-            const selectVente = document.getElementById('vente-article');
-            selectVente.innerHTML = '';
-            
-            articles.forEach(article => {
-                const stock = calculerStock(article.nom);
-                if (stock > 0) {
-                    const option = document.createElement('option');
-                    option.value = article.nom;
-                    option.textContent = `${article.nom} (${stock} dispo)`;
-                    selectVente.appendChild(option);
-                }
-            });
-            
-            // Sélecteur pour les frais de livraison
-            const selectLivraison = document.getElementById('livraison-article');
-            selectLivraison.innerHTML = '';
-            
-            articles.forEach(article => {
-                const option = document.createElement('option');
-                option.value = article.nom;
-                option.textContent = article.nom;
-                selectLivraison.appendChild(option);
-            });
-        }
-        
-        function getArticleById(id) {
-            return articles.find(a => a.id === id);
-        }
-        
-        // Fonctions directes sans confirmation
-        function ajouterAchatDirect() {
-            const articleId = parseInt(document.getElementById('achat-article').value);
-            const article = getArticleById(articleId);
-            const prix = parseFloat(document.getElementById('achat-prix').value);
-            const quantite = parseInt(document.getElementById('achat-quantite').value);
-            const date = document.getElementById('achat-date').value;
-            const categorie = document.getElementById('achat-categorie').value;
-            const fournisseurId = parseInt(document.getElementById('achat-fournisseur').value);
-            const fournisseur = fournisseurs.find(f => f.id === fournisseurId);
-            
-            if (!article || isNaN(prix) || isNaN(quantite) || !date || !fournisseur) {
-                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                return;
-            }
-            
-            const nouvelAchat = {
-                id: nextId++,
-                article: article.nom,
-                articleId: article.id,
-                categorie: categorie,
-                fournisseur: fournisseur.nom,
-                fournisseurId: fournisseur.id,
-                prixInitial: prix,
-                prixReel: prix,
-                fraisLivraison: 0,
-                quantite: quantite,
-                date: date,
-                livraisonAjoutee: false
-            };
-
-            achats.push(nouvelAchat);
-            localStorage.setItem('achats', JSON.stringify(achats));
-            actualiserDonnees();
-            
-            // Réinitialisation du formulaire
-            document.getElementById('achat-prix').value = '';
-            document.getElementById('achat-quantite').value = 1;
-            
-            showNotification(`Achat de ${quantite} ${article.nom} enregistré avec succès`, 'success');
-        }
-
-        function ajouterLivraisonDirect() {
-            const livraisonArticle = document.getElementById('livraison-article').value;
-            const frais = parseFloat(document.getElementById('achat-livraison').value) || 0;
-            const quantiteColis = parseInt(document.getElementById('livraison-quantite').value) || 1;
-            
-            if (!livraisonArticle || frais <= 0) {
-                showNotification('Veuillez sélectionner un article et entrer des frais valides', 'error');
-                return;
-            }
-            
-            // Trouve tous les achats de cet article sans frais de livraison
-            const achatsCibles = achats.filter(a => 
-                a.article === livraisonArticle && !a.livraisonAjoutee
-            );
-
-            if (achatsCibles.length === 0) {
-                showNotification('Aucun achat trouvé pour cet article ou frais déjà appliqués', 'warning');
-                return;
-            }
-
-            // Calcule le prix réel avec frais de livraison répartis
-            const fraisParUnite = frais / quantiteColis;
-            
-            achatsCibles.forEach(achat => {
-                achat.prixReel = achat.prixInitial + fraisParUnite;
-                achat.fraisLivraison = fraisParUnite;
-                achat.livraisonAjoutee = true;
-            });
-
-            localStorage.setItem('achats', JSON.stringify(achats));
-            actualiserDonnees();
-            
-            // Réinitialisation du formulaire
-            document.getElementById('achat-livraison').value = '';
-            document.getElementById('livraison-quantite').value = 1;
-            
-            showNotification(`Frais de livraison de ${frais.toFixed(2)}€ appliqués à ${livraisonArticle}`, 'success');
-        }
-
-        function ajouterVenteDirect() {
-            const venteArticle = document.getElementById('vente-article').value;
-            const ventePrix = parseFloat(document.getElementById('vente-prix').value);
-            const venteQuantite = parseInt(document.getElementById('vente-quantite').value);
-            const venteDate = document.getElementById('vente-date').value;
-            const venteType = document.getElementById('vente-type').value;
-            
-            if (!venteArticle || isNaN(ventePrix) || isNaN(venteQuantite) || !venteDate) {
-                showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                return;
-            } else if (calculerStock(venteArticle) < venteQuantite) {
-                showNotification(`Stock insuffisant! Il reste ${calculerStock(venteArticle)} ${venteArticle}(s)`, 'warning');
-                return;
-            }
-            
-            const nouvelleVente = {
-                id: nextId++,
-                article: venteArticle,
-                prix: ventePrix,
-                quantite: venteQuantite,
-                date: venteDate,
-                type: venteType,
-                isRetour: false
-            };
-
-            ventes.push(nouvelleVente);
-            localStorage.setItem('ventes', JSON.stringify(ventes));
-            actualiserDonnees();
-            
-            // Réinitialisation du formulaire
-            document.getElementById('vente-prix').value = '';
-            document.getElementById('vente-quantite').value = 1;
-            
-            showNotification(`Vente de ${venteQuantite} ${venteArticle} enregistrée avec succès`, 'success');
-        }
-        
-        function enregistrerRetourDirect() {
-            const venteId = parseInt(document.getElementById('retour-vente').value);
-            const retourQuantite = parseInt(document.getElementById('retour-quantite').value) || 1;
-            const raison = document.getElementById('retour-raison').value;
-            
-            const vente = ventes.find(v => v.id === venteId);
-            
-            if (!vente || retourQuantite > vente.quantite) {
-                showNotification('Quantité de retour invalide', 'error');
-                return;
-            }
-            
-            retours.push({
-                id: nextId++,
-                venteId: venteId,
-                article: vente.article,
-                quantite: retourQuantite,
-                date: new Date().toISOString().split('T')[0],
-                raison: raison
-            });
-            
-            localStorage.setItem('retours', JSON.stringify(retours));
-            
-            // Mettre à jour la quantité vendue
-            vente.quantite -= retourQuantite;
-            if (vente.quantite <= 0) {
-                ventes = ventes.filter(v => v.id !== venteId);
-            }
-            
-            localStorage.setItem('ventes', JSON.stringify(ventes));
-            actualiserDonnees();
-            
-            showNotification(`Retour de ${retourQuantite} ${vente.article} enregistré`, 'success');
-        }
-
-        function ajouterFournisseurDirect() {
-            const nom = document.getElementById('fournisseur-nom').value.trim();
-            const contact = document.getElementById('fournisseur-contact').value.trim();
-            
-            if (!nom || !contact) {
-                showNotification('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-            
-            fournisseurs.push({
-                id: nextId++,
-                nom: nom,
-                contact: contact
-            });
-            
-            localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
-            actualiserDonnees();
-            
-            // Réinitialisation du formulaire
-            document.getElementById('fournisseur-nom').value = '';
-            document.getElementById('fournisseur-contact').value = '';
-            
-            showNotification(`Fournisseur ${nom} ajouté avec succès`, 'success');
-        }
-
-        // Gestion des fournisseurs
-        function supprimerFournisseur(id) {
-            if (!confirm("Supprimer ce fournisseur ? Les achats associés seront conservés mais sans fournisseur.")) return;
-            
-            fournisseurs = fournisseurs.filter(f => f.id !== id);
-            localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
-            actualiserDonnees();
-            
-            showNotification('Fournisseur supprimé', 'success');
-        }
-
-        // Calcul du stock
-        function calculerStock(article) {
-            const totalAchats = achats
-                .filter(a => a.article === article)
-                .reduce((sum, a) => sum + a.quantite, 0);
-                
-            const totalVentes = ventes
-                .filter(v => v.article === article && !v.isRetour)
-                .reduce((sum, v) => sum + v.quantite, 0);
-                
-            return totalAchats - totalVentes;
-        }
-
-        // Suppression d'éléments
-        function supprimerElement(type, id) {
-            if (!confirm(`Supprimer définitivement cet ${type} ?`)) return;
-            
-            if (type === 'achat') {
-                achats = achats.filter(a => a.id !== id);
-                localStorage.setItem('achats', JSON.stringify(achats));
-            } else if (type === 'vente') {
-                ventes = ventes.filter(v => v.id !== id);
-                localStorage.setItem('ventes', JSON.stringify(ventes));
-            }
-            
-            actualiserDonnees();
-            showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} supprimé`, 'success');
-        }
-        
-        function supprimerArticle(article) {
-            if (!confirm(`Supprimer TOUS les achats et ventes de "${article}" ?`)) return;
-            
-            // Supprimer seulement les achats et ventes pour cet article spécifique
-            achats = achats.filter(a => a.article !== article);
-            ventes = ventes.filter(v => v.article !== article);
-            
-            localStorage.setItem('achats', JSON.stringify(achats));
-            localStorage.setItem('ventes', JSON.stringify(ventes));
-            actualiserDonnees();
-            
-            showNotification(`Tous les ${article} ont été supprimés`, 'success');
-        }
-
-        // Filtrage des ventes
-        function filterVentes(type) {
-            document.querySelectorAll('#ventes-section .tabs .tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            const tbody = document.getElementById('ventes-list');
-            tbody.innerHTML = '';
-            
-            let ventesFiltrees = [...ventes];
-            
-            if (type === 'direct') {
-                ventesFiltrees = ventes.filter(v => v.type === 'direct');
-            } else if (type === 'online') {
-                ventesFiltrees = ventes.filter(v => v.type === 'online');
-            } else if (type === 'retour') {
-                ventesFiltrees = retours.map(r => {
-                    const vente = ventes.find(v => v.id === r.venteId);
-                    return {
-                        ...vente,
-                        isRetour: true,
-                        quantite: r.quantite,
-                        date: r.date,
-                        prix: vente ? vente.prix : 0
-                    };
-                }).filter(v => v.id); // Filtrer les ventes non trouvées
-            }
-            
-            ventesFiltrees.forEach(vente => {
+        ventes.forEach(vente => {
+            const dateVente = new Date(vente.date);
+            if (dateVente >= dateDebut && dateVente <= dateFin) {
                 const achat = achats.find(a => a.article === vente.article);
                 const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
+                beneficeTotal += benefice;
                 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${vente.date}</td>
-                    <td>${vente.article}</td>
-                    <td>${vente.prix.toFixed(2)}€</td>
-                    <td class="${benefice >= 0 ? 'text-success' : 'text-danger'}">${benefice.toFixed(2)}€</td>
-                    <td>${vente.isRetour ? 'Retour' : vente.type === 'direct' ? 'Directe' : vente.type === 'online' ? 'En ligne' : 'Autre'}</td>
-                    <td><button class="btn-sm btn-danger" onclick="supprimerElement('vente', ${vente.id})">×</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
+                if (!articlesVendus[vente.article]) {
+                    articlesVendus[vente.article] = 0;
+                }
+                articlesVendus[vente.article] += benefice;
+            }
+        });
+        
+        rapport += `Bénéfice total: ${beneficeTotal.toFixed(2)}€\n\n`;
+        rapport += "Détail par article:\n";
+        for (const [article, benefice] of Object.entries(articlesVendus)) {
+            rapport += `${article}: ${benefice.toFixed(2)}€\n`;
         }
-
-        // Actualisation de l'interface
-        function actualiserDonnees() {
-            // Mettre à jour les sélecteurs d'articles
-            updateArticleSelects();
-            
-            // Sélecteur fournisseurs
-            const selectFournisseur = document.getElementById('achat-fournisseur');
-            selectFournisseur.innerHTML = '';
-            fournisseurs.forEach(fournisseur => {
-                const option = document.createElement('option');
-                option.value = fournisseur.id;
-                option.textContent = fournisseur.nom;
-                selectFournisseur.appendChild(option);
-            });
-            
-            // Sélecteur retours
-            const selectRetour = document.getElementById('retour-vente');
-            selectRetour.innerHTML = '';
-            ventes.filter(v => !v.isRetour && v.quantite > 0).forEach(vente => {
-                const option = document.createElement('option');
-                option.value = vente.id;
-                option.textContent = `${vente.date} - ${vente.article} (${vente.quantite})`;
-                selectRetour.appendChild(option);
-            });
-            
-            // Stock actuel
-            const tbodyStock = document.getElementById('stock-list');
-            tbodyStock.innerHTML = '';
-            
-            let valeurTotaleStock = 0;
-            const articlesUniques = [...new Set(achats.map(a => a.article))];
-            const articlesAvecStock = articlesUniques.filter(article => calculerStock(article) > 0);
-            
-            articlesAvecStock.forEach(article => {
-                const stock = calculerStock(article);
+    } else if (type === 'stocks') {
+        const articlesUniques = [...new Set(achats.map(a => a.article))];
+        let valeurTotale = 0;
+        
+        rapport += "État des stocks:\n";
+        articlesUniques.forEach(article => {
+            const stock = calculerStock(article);
+            if (stock > 0) {
                 const achat = achats.find(a => a.article === article);
                 const valeur = stock * achat.prixReel;
-                valeurTotaleStock += valeur;
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${article}</td>
-                    <td>${achat.categorie || 'autre'}</td>
-                    <td>${stock}</td>
-                    <td>${achat.prixReel.toFixed(2)}€</td>
-                    <td>${valeur.toFixed(2)}€</td>
-                    <td><button class="btn-sm btn-danger" onclick="supprimerArticle('${article}')">Supprimer</button></td>
-                `;
-                tbodyStock.appendChild(tr);
-            });
-            
-            document.getElementById('valeur-stock').textContent = valeurTotaleStock.toFixed(2) + '€';
-            
-            // Fournisseurs
-            const tbodyFournisseurs = document.getElementById('fournisseurs-list');
-            tbodyFournisseurs.innerHTML = '';
-            fournisseurs.forEach(fournisseur => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${fournisseur.nom}</td>
-                    <td>${fournisseur.contact}</td>
-                    <td><button class="btn-sm btn-danger" onclick="supprimerFournisseur(${fournisseur.id})">×</button></td>
-                `;
-                tbodyFournisseurs.appendChild(tr);
-            });
-            
-            // Historique achats
-            const tbodyAchats = document.getElementById('achats-list');
-            tbodyAchats.innerHTML = '';
-            achats.forEach(achat => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${achat.date}</td>
-                    <td>${achat.article}</td>
-                    <td>${achat.categorie || 'autre'}</td>
-                    <td>${achat.fournisseur || 'N/A'}</td>
-                    <td>${achat.prixReel.toFixed(2)}€</td>
-                    <td><button class="btn-sm btn-danger" onclick="supprimerElement('achat', ${achat.id})">×</button></td>
-                `;
-                tbodyAchats.appendChild(tr);
-            });
-            
-            // Historique ventes
-            filterVentes('all');
-            
-            // Dernières ventes pour le dashboard
-            const tbodyRecentSales = document.getElementById('recent-sales');
-            tbodyRecentSales.innerHTML = '';
-            
-            const recentVentes = [...ventes]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 5);
-            
-            recentVentes.forEach(vente => {
-                const achat = achats.find(a => a.article === vente.article);
-                const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${vente.date}</td>
-                    <td>${vente.article}</td>
-                    <td>${vente.prix.toFixed(2)}€</td>
-                    <td class="${benefice >= 0 ? 'text-success' : 'text-danger'}">${benefice.toFixed(2)}€</td>
-                `;
-                tbodyRecentSales.appendChild(tr);
-            });
-            
-            // Top produits
-            const tbodyTopProducts = document.getElementById('top-products');
-            tbodyTopProducts.innerHTML = '';
-            
-            const produits = [];
-            const articlesVendus = [...new Set(ventes.map(v => v.article))];
-            
-            articlesVendus.forEach(article => {
-                const ventesArticle = ventes.filter(v => v.article === article);
-                const achat = achats.find(a => a.article === article);
-                
-                if (achat) {
-                    const prixAchat = achat.prixReel;
-                    const prixVente = ventesArticle.reduce((sum, v) => sum + v.prix, 0) / ventesArticle.length;
-                    const marge = prixVente - prixAchat;
-                    const rentabilite = (marge / prixAchat) * 100;
-                    
-                    produits.push({
-                        article,
-                        prixAchat,
-                        prixVente,
-                        marge,
-                        rentabilite
-                    });
-                }
-            });
-            
-            // Trier par rentabilité décroissante
-            produits.sort((a, b) => b.rentabilite - a.rentabilite);
-            
-            // Afficher tous les produits (pas seulement 5) et s'assurer qu'il y a au moins un produit
-            if (produits.length === 0 && articles.length > 0) {
-                // Si aucun produit vendu mais des articles existent, afficher le premier article
-                const article = articles[0];
-                produits.push({
-                    article: article.nom,
-                    prixAchat: article.prixReference,
-                    prixVente: article.prixReference * 1.2, // Prix de vente par défaut (20% de marge)
-                    marge: article.prixReference * 0.2,
-                    rentabilite: 20
-                });
-            }
-            
-            produits.forEach(prod => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${prod.article}</td>
-                    <td>${prod.prixAchat.toFixed(2)}€</td>
-                    <td>${prod.prixVente.toFixed(2)}€</td>
-                    <td>${prod.marge.toFixed(2)}€</td>
-                    <td class="${prod.rentabilite >= 0 ? 'text-success' : 'text-danger'}">${prod.rentabilite.toFixed(1)}%</td>
-                `;
-                tbodyTopProducts.appendChild(tr);
-            });
-            
-            // Mise à jour des stats
-            updateStats();
-            
-            // Mise à jour des graphiques
-            if (dashboardChart) {
-                dashboardChart.data = getChartData('benefices');
-                dashboardChart.update();
-            }
-            
-            if (categoriesChart) {
-                categoriesChart.data = getCategoriesData();
-                categoriesChart.update();
-            }
-        }
-        
-        function updateStats() {
-            const aujourdhui = new Date().toISOString().split('T')[0];
-            const date7Jours = new Date();
-            date7Jours.setDate(date7Jours.getDate() - 7);
-            
-            let benefJour = 0;
-            let benefSemaine = 0;
-            let benefMois = 0;
-            let totalVentes = 0;
-            let totalCout = 0;
-            
-            ventes.forEach(vente => {
-                const achat = achats.find(a => a.article === vente.article);
-                const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
-                const cout = achat ? achat.prixReel * vente.quantite : 0;
-                
-                if (vente.date === aujourdhui) benefJour += benefice;
-                if (new Date(vente.date) >= date7Jours) benefSemaine += benefice;
-                if (new Date(vente.date).getMonth() === new Date().getMonth()) {
-                    benefMois += benefice;
-                    totalVentes += vente.prix * vente.quantite;
-                    totalCout += cout;
-                }
-            });
-            
-            // Calcul de la marge moyenne
-            const margeMoyenne = totalCout > 0 ? ((totalVentes - totalCout) / totalVentes) * 100 : 0;
-            
-            document.getElementById('benef-jour').textContent = benefJour.toFixed(2) + '€';
-            document.getElementById('benef-semaine').textContent = benefSemaine.toFixed(2) + '€';
-            document.getElementById('benef-mois').textContent = benefMois.toFixed(2) + '€';
-            document.getElementById('marge-moyenne').textContent = margeMoyenne.toFixed(1) + '%';
-        }
-        
-        // Génération d'inventaire
-        function genererInventaire() {
-            const articlesUniques = [...new Set(achats.map(a => a.article))];
-            let inventaire = "=== INVENTAIRE ===\n";
-            inventaire += `Date: ${new Date().toLocaleDateString()}\n\n`;
-            
-            articlesUniques.forEach(article => {
-                const stock = calculerStock(article);
-                if (stock > 0) {
-                    const achat = achats.find(a => a.article === article);
-                    inventaire += `${article}: ${stock} unités (${(stock * achat.prixReel).toFixed(2)}€)\n`;
-                }
-            });
-            
-            document.getElementById('inventaire-result').textContent = inventaire;
-        }
-        
-        // Gestion des rapports
-        function genererRapport() {
-            const type = document.getElementById('rapport-type').value;
-            const periode = document.getElementById('rapport-periode').value;
-            
-            let dateDebut, dateFin;
-            const aujourdhui = new Date();
-            
-            switch(periode) {
-                case '7jours':
-                    dateDebut = new Date(aujourdhui);
-                    dateDebut.setDate(aujourdhui.getDate() - 6);
-                    dateFin = aujourdhui;
-                    break;
-                case 'mois':
-                    dateDebut = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), 1);
-                    dateFin = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() + 1, 0);
-                    break;
-                case 'mois-prec':
-                    dateDebut = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() - 1, 1);
-                    dateFin = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), 0);
-                    break;
-                case 'annee':
-                    dateDebut = new Date(aujourdhui.getFullYear(), 0, 1);
-                    dateFin = new Date(aujourdhui.getFullYear(), 11, 31);
-                    break;
-                case 'custom':
-                    dateDebut = new Date(document.getElementById('rapport-date-debut').value);
-                    dateFin = new Date(document.getElementById('rapport-date-fin').value);
-                    break;
-            }
-            
-            let rapport = `=== RAPPORT ${type.toUpperCase()} ===\n`;
-            rapport += `Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}\n\n`;
-            
-            if (type === 'ventes') {
-                const ventesPeriode = ventes.filter(v => {
-                    const dateVente = new Date(v.date);
-                    return dateVente >= dateDebut && dateVente <= dateFin;
-                });
-                
-                const totalVentes = ventesPeriode.reduce((sum, v) => sum + v.quantite, 0);
-                const chiffreAffaires = ventesPeriode.reduce((sum, v) => sum + (v.prix * v.quantite), 0);
-                
-                rapport += `Total ventes: ${ventesPeriode.length}\n`;
-                rapport += `Articles vendus: ${totalVentes}\n`;
-                rapport += `Chiffre d'affaires: ${chiffreAffaires.toFixed(2)}€\n\n`;
-                
-                // Détail par article
-                const articlesVendus = [...new Set(ventesPeriode.map(v => v.article))];
-                articlesVendus.forEach(article => {
-                    const ventesArticle = ventesPeriode.filter(v => v.article === article);
-                    const qte = ventesArticle.reduce((sum, v) => sum + v.quantite, 0);
-                    rapport += `${article}: ${qte} ventes (${ventesArticle.reduce((sum, v) => sum + (v.prix * v.quantite), 0).toFixed(2)}€)\n`;
-                });
-            } else if (type === 'benefices') {
-                let beneficeTotal = 0;
-                const articlesVendus = {};
-                
-                ventes.forEach(vente => {
-                    const dateVente = new Date(vente.date);
-                    if (dateVente >= dateDebut && dateVente <= dateFin) {
-                        const achat = achats.find(a => a.article === vente.article);
-                        const benefice = achat ? (vente.prix - achat.prixReel) * vente.quantite : 0;
-                        beneficeTotal += benefice;
-                        
-                        if (!articlesVendus[vente.article]) {
-                            articlesVendus[vente.article] = 0;
-                        }
-                        articlesVendus[vente.article] += benefice;
-                    }
-                });
-                
-                rapport += `Bénéfice total: ${beneficeTotal.toFixed(2)}€\n\n`;
-                rapport += "Détail par article:\n";
-                for (const [article, benefice] of Object.entries(articlesVendus)) {
-                    rapport += `${article}: ${benefice.toFixed(2)}€\n`;
-                }
-            } else if (type === 'stocks') {
-                const articlesUniques = [...new Set(achats.map(a => a.article))];
-                let valeurTotale = 0;
-                
-                rapport += "État des stocks:\n";
-                articlesUniques.forEach(article => {
-                    const stock = calculerStock(article);
-                    if (stock > 0) {
-                        const achat = achats.find(a => a.article === article);
-                        const valeur = stock * achat.prixReel;
-                        valeurTotale += valeur;
-                        rapport += `${article}: ${stock} unités (${valeur.toFixed(2)}€)\n`;
-                    }
-                });
-                
-                rapport += `\nValeur totale du stock: ${valeurTotale.toFixed(2)}€\n`;
-            } else if (type === 'fournisseurs') {
-                rapport += "Dépenses par fournisseur:\n";
-                const depensesFournisseurs = {};
-                
-                achats.forEach(achat => {
-                    const dateAchat = new Date(achat.date);
-                    if (dateAchat >= dateDebut && dateAchat <= dateFin) {
-                        const fournisseur = achat.fournisseur || 'Inconnu';
-                        if (!depensesFournisseurs[fournisseur]) {
-                            depensesFournisseurs[fournisseur] = 0;
-                        }
-                        depensesFournisseurs[fournisseur] += achat.prixReel * achat.quantite;
-                    }
-                });
-                
-                for (const [fournisseur, depense] of Object.entries(depensesFournisseurs)) {
-                    rapport += `${fournisseur}: ${depense.toFixed(2)}€\n`;
-                }
-            }
-            
-            document.getElementById('rapport-result').textContent = rapport;
-        }
-        
-        // Export/Import de données
-        function openExportModal() {
-            document.getElementById('export-modal').style.display = 'flex';
-        }
-        
-        function closeExportModal() {
-            document.getElementById('export-modal').style.display = 'none';
-        }
-        
-        function exporterDonnees(format) {
-            const data = {
-                achats,
-                ventes,
-                fournisseurs,
-                retours,
-                articles,
-                nextId
-            };
-            
-            let contenu, nomFichier, typeMime;
-            
-            if (format === 'csv') {
-                // Convertir en CSV (simplifié)
-                let csv = "Type,Article,Quantité,Prix,Date\n";
-                
-                // Achats
-                achats.forEach(a => {
-                    csv += `Achat,${a.article},${a.quantite},${a.prixReel},${a.date}\n`;
-                });
-                
-                // Ventes
-                ventes.forEach(v => {
-                    csv += `Vente,${v.article},${v.quantite},${v.prix},${v.date}\n`;
-                });
-                
-                contenu = csv;
-                nomFichier = `stockpro_export_${new Date().toISOString().split('T')[0]}.csv`;
-                typeMime = 'text/csv';
-            } else {
-                // JSON par défaut
-                contenu = JSON.stringify(data, null, 2);
-                nomFichier = `stockpro_export_${new Date().toISOString().split('T')[0]}.json`;
-                typeMime = 'application/json';
-            }
-            
-            const blob = new Blob([contenu], { type: typeMime });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = nomFichier;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            closeExportModal();
-            showNotification('Export réussi', 'success');
-        }
-        
-        function importerDonnees() {
-            document.getElementById('file-import').click();
-        }
-        
-        document.getElementById('file-import').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = file.name.endsWith('.json') ? 
-                        JSON.parse(e.target.result) : 
-                        parseCSV(e.target.result);
-                    
-                    if (confirm(`Importer ${data.achats?.length || 0} achats, ${data.ventes?.length || 0} ventes et ${data.fournisseurs?.length || 0} fournisseurs ?`)) {
-                        if (data.achats) achats = data.achats;
-                        if (data.ventes) ventes = data.ventes;
-                        if (data.fournisseurs) fournisseurs = data.fournisseurs;
-                        if (data.retours) retours = data.retours;
-                        if (data.articles) articles = data.articles;
-                        if (data.nextId) nextId = data.nextId;
-                        
-                        localStorage.setItem('achats', JSON.stringify(achats));
-                        localStorage.setItem('ventes', JSON.stringify(ventes));
-                        localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
-                        localStorage.setItem('retours', JSON.stringify(retours));
-                        localStorage.setItem('articles', JSON.stringify(articles));
-                        
-                        actualiserDonnees();
-                        showNotification('Import réussi', 'success');
-                    }
-                } catch (err) {
-                    showNotification('Erreur lors de l\'import: ' + err.message, 'error');
-                }
-            };
-            
-            if (file.name.endsWith('.json')) {
-                reader.readAsText(file);
-            } else if (file.name.endsWith('.csv')) {
-                reader.readAsText(file);
-            } else {
-                showNotification('Format de fichier non supporté', 'error');
+                valeurTotale += valeur;
+                rapport += `${article}: ${stock} unités (${valeur.toFixed(2)}€)\n`;
             }
         });
         
-        function parseCSV(csv) {
-            const lines = csv.split('\n');
-            const data = {
-                achats: [],
-                ventes: [],
-                fournisseurs: [],
-                retours: [],
-                articles: [],
-                nextId: 1
-            };
-            
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const [type, article, quantite, prix, date] = line.split(',');
-                
-                if (type === 'Achat') {
-                    data.achats.push({
-                        id: data.nextId++,
-                        article,
-                        quantite: parseInt(quantite),
-                        prixInitial: parseFloat(prix),
-                        prixReel: parseFloat(prix),
-                        fraisLivraison: 0,
-                        date,
-                        livraisonAjoutee: false
-                    });
-                } else if (type === 'Vente') {
-                    data.ventes.push({
-                        id: data.nextId++,
-                        article,
-                        quantite: parseInt(quantite),
-                        prix: parseFloat(prix),
-                        date,
-                        type: 'direct',
-                        isRetour: false
-                    });
+        rapport += `\nValeur totale du stock: ${valeurTotale.toFixed(2)}€\n`;
+    } else if (type === 'fournisseurs') {
+        rapport += "Dépenses par fournisseur:\n";
+        const depensesFournisseurs = {};
+        
+        achats.forEach(achat => {
+            const dateAchat = new Date(achat.date);
+            if (dateAchat >= dateDebut && dateAchat <= dateFin) {
+                const fournisseur = achat.fournisseur || 'Inconnu';
+                if (!depensesFournisseurs[fournisseur]) {
+                    depensesFournisseurs[fournisseur] = 0;
                 }
+                depensesFournisseurs[fournisseur] += achat.prixReel * achat.quantite;
             }
-            
-            return data;
-        }
-        
-        // Gestion des dates personnalisées
-        document.getElementById('rapport-periode').addEventListener('change', function() {
-            document.getElementById('custom-dates').style.display = 
-                this.value === 'custom' ? 'block' : 'none';
         });
         
-        // Recherche dans le stock
-        document.getElementById('search-stock').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#stock-list tr');
+        for (const [fournisseur, depense] of Object.entries(depensesFournisseurs)) {
+            rapport += `${fournisseur}: ${depense.toFixed(2)}€\n`;
+        }
+    }
+    
+    document.getElementById('rapport-result').textContent = rapport;
+}
+
+// Export/Import de données
+function openExportModal() {
+    document.getElementById('export-modal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('export-modal').style.display = 'none';
+}
+
+function exporterDonnees(format) {
+    const data = {
+        achats,
+        ventes,
+        fournisseurs,
+        retours,
+        nextId
+    };
+    
+    let contenu, nomFichier, typeMime;
+    
+    if (format === 'csv') {
+        // Convertir en CSV (simplifié)
+        let csv = "Type,Article,Quantité,Prix,Date\n";
+        
+        // Achats
+        achats.forEach(a => {
+            csv += `Achat,${a.article},${a.quantite},${a.prixReel},${a.date}\n`;
+        });
+        
+        // Ventes
+        ventes.forEach(v => {
+            csv += `Vente,${v.article},${v.quantite},${v.prix},${v.date}\n`;
+        });
+        
+        contenu = csv;
+        nomFichier = `stockpro_export_${new Date().toISOString().split('T')[0]}.csv`;
+        typeMime = 'text/csv';
+    } else {
+        // JSON par défaut
+        contenu = JSON.stringify(data, null, 2);
+        nomFichier = `stockpro_export_${new Date().toISOString().split('T')[0]}.json`;
+        typeMime = 'application/json';
+    }
+    
+    const blob = new Blob([contenu], { type: typeMime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nomFichier;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    closeExportModal();
+    showNotification('Export réussi', 'success');
+}
+
+function importerDonnees() {
+    document.getElementById('file-import').click();
+}
+
+document.getElementById('file-import').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = file.name.endsWith('.json') ? 
+                JSON.parse(e.target.result) : 
+                parseCSV(e.target.result);
             
-            rows.forEach(row => {
-                const article = row.cells[0].textContent.toLowerCase();
-                row.style.display = article.includes(searchTerm) ? '' : 'none';
+            if (confirm(`Importer ${data.achats?.length || 0} achats, ${data.ventes?.length || 0} ventes et ${data.fournisseurs?.length || 0} fournisseurs ?`)) {
+                if (data.achats) achats = data.achats;
+                if (data.ventes) ventes = data.ventes;
+                if (data.fournisseurs) fournisseurs = data.fournisseurs;
+                if (data.retours) retours = data.retours;
+                if (data.nextId) nextId = data.nextId;
+                
+                localStorage.setItem('achats', JSON.stringify(achats));
+                localStorage.setItem('ventes', JSON.stringify(ventes));
+                localStorage.setItem('fournisseurs', JSON.stringify(fournisseurs));
+                localStorage.setItem('retours', JSON.stringify(retours));
+                
+                actualiserDonnees();
+                showNotification('Import réussi', 'success');
+            }
+        } catch (err) {
+            showNotification('Erreur lors de l\'import: ' + err.message, 'error');
+        }
+    };
+    
+    if (file.name.endsWith('.json')) {
+        reader.readAsText(file);
+    } else if (file.name.endsWith('.csv')) {
+        reader.readAsText(file);
+    } else {
+        showNotification('Format de fichier non supporté', 'error');
+    }
+});
+
+function parseCSV(csv) {
+    // Implémentation simplifiée - à adapter selon votre structure CSV
+    const lines = csv.split('\n');
+    const data = {
+        achats: [],
+        ventes: [],
+        fournisseurs: [],
+        retours: [],
+        nextId: 1
+    };
+    
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const [type, article, quantite, prix, date] = line.split(',');
+        
+        if (type === 'Achat') {
+            data.achats.push({
+                id: data.nextId++,
+                article,
+                quantite: parseInt(quantite),
+                prixInitial: parseFloat(prix),
+                prixReel: parseFloat(prix),
+                fraisLivraison: 0,
+                date,
+                livraisonAjoutee: false
             });
-        });
-        
-        // Mise à jour du stock disponible quand on change d'article
-        document.getElementById('vente-article').addEventListener('change', function() {
-            const stock = calculerStock(this.value);
-            document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
-        });
-        
-        // Notifications
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.remove('hidden');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
+        } else if (type === 'Vente') {
+            data.ventes.push({
+                id: data.nextId++,
+                article,
+                quantite: parseInt(quantite),
+                prix: parseFloat(prix),
+                date,
+                type: 'direct',
+                isRetour: false
+            });
         }
-        
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', () => {
-            // Définir la date d'aujourd'hui par défaut dans les formulaires
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('achat-date').value = today;
-            document.getElementById('vente-date').value = today;
-            document.getElementById('rapport-date-debut').value = today;
-            document.getElementById('rapport-date-fin').value = today;
-            
-            actualiserDonnees();
-            showSection('dashboard');
-        });
-    </script>
+    }
+    
+    return data;
+}
+
+// Gestion des dates personnalisées
+document.getElementById('rapport-periode').addEventListener('change', function() {
+    document.getElementById('custom-dates').style.display = 
+        this.value === 'custom' ? 'block' : 'none';
+});
+
+// Recherche dans le stock
+document.getElementById('search-stock').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#stock-list tr');
+    
+    rows.forEach(row => {
+        const article = row.cells[0].textContent.toLowerCase();
+        row.style.display = article.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Mise à jour du stock disponible quand on change d'article
+document.getElementById('vente-article').addEventListener('change', function() {
+    const stock = calculerStock(this.value);
+    document.getElementById('stock-disponible').textContent = `Stock disponible: ${stock}`;
+});
+
+// Notifications
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.remove('hidden');
+    
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    // Définir la date d'aujourd'hui par défaut dans les formulaires
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('achat-date').value = today;
+    document.getElementById('vente-date').value = today;
+    document.getElementById('rapport-date-debut').value = today;
+    document.getElementById('rapport-date-fin').value = today;
+    
+    actualiserDonnees();
+    showSection('dashboard');
+});
+</script>
 </body>
 </html>
